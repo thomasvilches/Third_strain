@@ -359,7 +359,7 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate
     herd = $(h_i),start_several_inf=true,initialinf=$ic,
     ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
     sec_strain_trans=$strain2_trans,
-    min_age_vac=$ag_v, relaxing_time = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
+    min_age_vac=$ag_v, time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
 
     folder = create_folder(ip,vac)
 

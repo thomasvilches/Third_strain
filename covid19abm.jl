@@ -97,7 +97,7 @@ end
     vac_efficacy_inf::Array{Array{Float64,1},1} = [[0.46],[0.6;0.93]]  #### 50:5:80
     vac_efficacy_symp::Array{Array{Float64,1},1} = [[0.921],[0.921;0.941]]  #### 50:5:80
     vac_efficacy_sev::Array{Array{Float64,1},1} = [[0.802],[0.941;1.0]]  #### 50:5:80
-
+   
 
     vaccinating::Bool = false #vaccinating?
     single_dose::Bool = false #unique dose
@@ -119,22 +119,23 @@ end
     days_Rt::Array{Int64,1} = [100;200;300] #days to get Rt
 
     priority::Bool = false #prioritizing commorbid
-    sec_strain_trans::Float64 = 1.0 #transmissibility of second strain
+    sec_strain_trans::Float64 = 1.5 #transmissibility of second strain
     ins_sec_strain::Bool = false #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
     time_sec_strain::Int64 = 92 #when will the second strain introduced
 
-    ins_third_strain::Bool = true #insert second strain?
-    initialinf3::Int64 = 30 #number of initial infected of second strain
-    time_third_strain::Int64 = 160 #when will the second strain introduced
-    third_strain_trans::Float64 = 2.0 #transmissibility of second strain
+    ins_third_strain::Bool = false #insert second strain?
+    initialinf3::Int64 = 1 #number of initial infected of second strain
+    time_third_strain::Int64 = 150 #when will the third strain introduced
+    third_strain_trans::Float64 = 0.0 #transmissibility of second strain
+    reduction_recovered::Float64 = 0.21
 
     max_vac_delay::Int64 = 42 #max delay before protection starts waning
     min_eff = 0.02 #min efficacy when waning
     vac_effect::Int64 = 1 #vac effect, if 1 the difference between doses is added to first, if 2 the second dose is always vac_efficacy
     no_cap::Bool = true ## no maximum coverage
     strain_ef_red::Float64 = 0.0 #reduction in efficacy against second strain
-    strain_ef_red3::Float64 = 0.5 #reduction in efficacy against second strain
+    strain_ef_red3::Float64 = reduction_recovered #reduction in efficacy against second strain
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
     time_change::Int64 = 999
@@ -151,7 +152,7 @@ end
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
-    time_back_to_normal::Int64 = 307
+    time_back_to_normal::Int64 = 999
     back_normal_rate::Float64 = 1.473684211 #2.105263158  ###1.789473684 => 0.85 ####1.473684211 =>0.7
 end
 
@@ -362,10 +363,7 @@ function main(ip::ModelParameters,sim::Int64)
                 setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
                 count_change += 1
             end
-            if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st
-                setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
-                count_change += 1
-            end
+           
             #println("$st")
             #=if st == p.tpreiso ## time to introduce testing
             global  p.fpreiso = _fpreiso
@@ -610,6 +608,7 @@ function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2
                     #x.vac_ef = ((1-red_com)^x.comorbidity)*(p.vac_efficacy/2.0)+(p.vac_efficacy/2.0)
                     x.days_vac = 0
                     x.vac_status = 2
+                    x.index_day = 1
                    # x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
                 end
             else
@@ -617,6 +616,7 @@ function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2
                 #x.vac_ef = ((1-red_com)^x.comorbidity)*(p.vac_efficacy/2.0)+(p.vac_efficacy/2.0)
                 x.days_vac = 0
                 x.vac_status = 2
+                x.index_day = 1
                # x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
                
             end
@@ -847,13 +847,13 @@ function _count_infectors()
             elseif x.sickfrom == INF2 || x.sickfrom == IISO2 
                 inf_ctr2 += 1 
             elseif x.sickfrom == PRE3
-                pre_ctr2 += 1
+                pre_ctr3 += 1
             elseif x.sickfrom == ASYMP3
-                asymp_ctr2 += 1
+                asymp_ctr3 += 1
             elseif x.sickfrom == MILD3 || x.sickfrom == MISO3 
-                mild_ctr2 += 1 
+                mild_ctr3 += 1 
             elseif x.sickfrom == INF3 || x.sickfrom == IISO3 
-                inf_ctr2 += 1 
+                inf_ctr3 += 1 
             else 
                 error("sickfrom not set right: $(x.sickfrom)")
             end
@@ -1040,30 +1040,6 @@ function insert_infected(health, num, ag,strain)
             else
                 error("no strain")
             end
-
-
-            #=if health == PRE
-                x.swap = x.strain == 1 ? PRE : PRE2
-                move_to_pre(x) ## the swap may be asymp, mild, or severe, but we can force severe in the time_update function
-            elseif health == LAT
-                x.swap = x.strain == 1 ? LAT : LAT2
-                move_to_latent(x)
-            elseif health == MILD
-                x.swap = x.strain == 1 ? MILD : MILD2
-                move_to_mild(x)
-            elseif health == INF
-                x.swap = x.strain == 1 ? INF : INF2
-                move_to_infsimple(x)
-            elseif health == ASYMP
-                x.swap = x.strain == 1 ? ASYMP : ASYMP2
-                move_to_asymp(x)
-            elseif health == REC 
-                x.swap = x.strain == 1 ? REC : REC2
-                move_to_recovered(x)
-            else 
-                error("can not insert human of health $(health)")
-            end   =#
-           
             x.sickfrom = INF # this will add +1 to the INF count in _count_infectors()... keeps the logic simple in that function.    
             
         end
@@ -1353,13 +1329,13 @@ function move_to_inf(x::Human)
  
     # h = prob of hospital, c = prob of icu AFTER hospital    
    
-    h = x.comorbidity == 1 ? 0.376 : 0.09
+    h = x.comorbidity == 1 ? 0.376 : 0.09 #0.376
     c = x.comorbidity == 1 ? 0.33 : 0.25
     
     groups = [0:34,35:54,55:69,70:84,85:100]
     gg = findfirst(y-> x.age in y,groups)
 
-    mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381]     # death rate for severe cases.
+    mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381] # death rate for severe cases.
    
     ###prop/(prob de sintoma severo)
     if p.calibration && !p.calibration2
@@ -1400,7 +1376,7 @@ function move_to_inf(x::Human)
         end
        
     else ## no hospital for this lucky (but severe) individual 
-        aux = (p.mortality_inc^(x.strain-1))
+        aux = (p.mortality_inc^Int(x.strain==2))
         if rand() < mh[gg]*aux
             x.exp = x.dur[4] 
             if x.strain == 1
@@ -1424,7 +1400,6 @@ function move_to_inf(x::Human)
             else
                 error("No strain in move to miso")
             end
-            x.swap = x.strain == 1 ? REC : REC2
             if x.iso || rand() < p.fsevere 
                 x.exp = 1  ## 1 day isolation for severe cases 
                 if x.strain == 1
@@ -1542,16 +1517,18 @@ function move_to_hospicu(x::Human)
         else 
             x.exp = psiC
             if x.strain == 1
-                x.swap = DED
+                x.swap = REC 
             elseif x.strain == 2
-                x.swap = DED2
+                x.swap = REC2
             elseif x.strain == 3
-                x.swap = DED3
+                x.swap = REC3 
             else
-                error("No strain in move to inf")
-            end 
+                error("No strain in move to miso")
+            end
             #x.swap = x.strain == 1 ? REC : REC2
         end
+    else
+        error("error in hosp")
     end
     
     ## before returning, check if swap is set 
@@ -1637,7 +1614,7 @@ export _get_betavalue
         cnt = rand(negative_binomials_shelter(ag,p.contact_change_2))  # expensive operation, try to optimize
     end
     
-    if x.health == DED || x.health==DED2
+    if x.health in (DED,DED2,DED3)
         cnt = 0 
     end
     x.nextday_meetcnt = cnt
@@ -1648,66 +1625,134 @@ function dyntrans(sys_time, grps)
     totalmet = 0 # count the total number of contacts (total for day, for all INF contacts)
     totalinf = 0 # count number of new infected 
     ## find all the people infectious
-    infs = findall(x -> x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2,PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3), humans)
     
     # go through every infectious person
-    for xid in infs
-        x = humans[xid]
-        xhealth = x.health
-        cnts = x.nextday_meetcnt
-        if cnts > 0  
-            gpw = Int.(round.(cm[x.ag]*cnts)) # split the counts over age groups
-            for (i, g) in enumerate(gpw)
-                # sample the people from each group
-                meet = rand(grps[i], g)
-                # go through each person
-                for j in meet 
-                    y = humans[j]
-                    ycnt = y.nextday_meetcnt             
-                    
-                    if ycnt > 0 
-                        y.nextday_meetcnt = y.nextday_meetcnt - 1 # remove a contact
-                        totalmet += 1
-                        # there is a contact to recieve
-                         # tracing dynamics
+    for x in humans
+        if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2)
+            #x = humans[xid]
+            xhealth = x.health
+            cnts = x.nextday_meetcnt
+            if cnts > 0  
+                gpw = Int.(round.(cm[x.ag]*cnts)) # split the counts over age groups
+                for (i, g) in enumerate(gpw)
+                    # sample the people from each group
+                    meet = rand(grps[i], g)
+                    # go through each person
+                    for j in meet 
+                        y = humans[j]
+                        ycnt = y.nextday_meetcnt             
                         
-                        if x.tracing  
-                            if y.tracedby == 0 && rand() < p.fcontactst
-                                y.tracedby = x.idx
-                                ct_data.totaltrace += 1 
+                        if ycnt > 0 
+                            y.nextday_meetcnt = y.nextday_meetcnt - 1 # remove a contact
+                            totalmet += 1
+                            # there is a contact to recieve
+                            # tracing dynamics
+                            
+                            if x.tracing  
+                                if y.tracedby == 0 && rand() < p.fcontactst
+                                    y.tracedby = x.idx
+                                    ct_data.totaltrace += 1 
+                                end
                             end
+                            
+                        # tranmission dynamics
+                            if  y.health == SUS && y.swap == UNDEF                  
+                                beta = _get_betavalue(sys_time, xhealth)
+                                if rand() < beta*((1-p.strain_ef_red)^(Int(x.strain==2)))
+                                    totalinf += 1
+                                    
+                                    y.exp = y.tis   ## force the move to latent in the next time step.
+                                    y.sickfrom = xhealth ## stores the infector's status to the infectee's sickfrom
+                                    y.sickby = x.idx
+                                    y.strain = x.strain
+                                    y.strain < 0 && error("No strain")
+
+                                    if y.strain == 1
+                                        y.swap = LAT
+                                    elseif y.strain == 2
+                                        y.swap = LAT2
+                                    else
+                                        error("No strain in move to transmission")
+                                    end 
+                                    #y.swap = y.strain == 1 ? LAT : LAT2
+                                end  
+                            end
+        
                         end
                         
-                    # tranmission dynamics
-                        if  y.health == SUS && y.swap == UNDEF                  
-                            beta = _get_betavalue(sys_time, xhealth)
-                            if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
-                                totalinf += 1
-                                
-                                y.exp = y.tis   ## force the move to latent in the next time step.
-                                y.sickfrom = xhealth ## stores the infector's status to the infectee's sickfrom
-                                y.sickby = xid
-                                y.strain = x.strain
-                                y.strain < 0 && error("No strain")
-
-                                if y.strain == 1
-                                    y.swap = LAT
-                                elseif y.strain == 2
-                                    y.swap = LAT2
-                                elseif y.strain == 3
-                                    y.swap = LAT3
-                                else
-                                    error("No strain in move to transmission")
-                                end 
-                                #y.swap = y.strain == 1 ? LAT : LAT2
-                            end  
-                        end
-    
                     end
-                    
                 end
             end
-        end        
+        elseif x.health in (PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3)
+            xhealth = x.health
+            cnts = x.nextday_meetcnt
+            if cnts > 0  
+                gpw = Int.(round.(cm[x.ag]*cnts)) # split the counts over age groups
+                for (i, g) in enumerate(gpw)
+                    # sample the people from each group
+                    meet = rand(grps[i], g)
+                    # go through each person
+                    for j in meet 
+                        y = humans[j]
+                        ycnt = y.nextday_meetcnt             
+                        
+                        if ycnt > 0 
+                            y.nextday_meetcnt = y.nextday_meetcnt - 1 # remove a contact
+                            totalmet += 1
+                            # there is a contact to recieve
+                            # tracing dynamics
+                            
+                            if x.tracing  
+                                if y.tracedby == 0 && rand() < p.fcontactst
+                                    y.tracedby = x.idx
+                                    ct_data.totaltrace += 1 
+                                end
+                            end
+                            
+                        # tranmission dynamics
+                            if  y.health == SUS && y.swap == UNDEF                  
+                                beta = _get_betavalue(sys_time, xhealth)
+                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3))
+                                    totalinf += 1
+                                    
+                                    y.exp = y.tis   ## force the move to latent in the next time step.
+                                    y.sickfrom = xhealth ## stores the infector's status to the infectee's sickfrom
+                                    y.sickby = x.idx
+                                    y.strain = x.strain
+
+                                    if y.strain == 3
+                                        y.swap = LAT3
+                                    else
+                                        error("No strain in move to transmission")
+                                    end 
+                                    #y.swap = y.strain == 1 ? LAT : LAT2
+                                end  
+                            elseif y.health in (REC,REC2) && y.swap == UNDEF
+                                beta = _get_betavalue(sys_time, xhealth)
+                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3))*(p.reduction_recovered)
+                                    totalinf += 1
+                                    
+                                    y.exp = y.tis   ## force the move to latent in the next time step.
+                                    y.sickfrom = xhealth ## stores the infector's status to the infectee's sickfrom
+                                    y.sickby = x.idx
+                                    y.strain = x.strain
+                                    
+
+                                    if y.strain == 3
+                                        y.swap = LAT3
+                                    else
+                                        error("No strain in move to transmission 2")
+                                    end 
+                                    #y.swap = y.strain == 1 ? LAT : LAT2
+                                end  
+                            end
+        
+                        end
+                        
+                    end
+                end
+            end
+        end
     end
     return totalmet, totalinf
 end
