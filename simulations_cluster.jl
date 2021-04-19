@@ -18,7 +18,7 @@ using DelimitedFiles
 
 #@everywhere using covid19abm
 
-addprocs(SlurmManager(250), N=8, topology=:master_worker, exeflags="--project=.")
+addprocs(SlurmManager(500), N=17, topology=:master_worker, exeflags="--project=.")
 @everywhere using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 @everywhere include("covid19abm.jl")
 @everywhere const cv=covid19abm
@@ -356,9 +356,9 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate
     #ic = init_con[h_i]
     @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = $vaccinate,vac_efficacy_inf = $inf,
     vac_efficacy_symp=$symp, vac_efficacy_sev = $sev,
-    herd = $(h_i),start_several_inf=true,initialinf=$ic,
+    herd = $(h_i),start_several_inf=true,initialinf3=$ic,
     ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
-    sec_strain_trans=$strain2_trans,
+    third_strain_trans=$strain2_trans,
     min_age_vac=$ag_v, time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
 
     folder = create_folder(ip,vac)

@@ -55,7 +55,7 @@ end
     ignore_cal::Bool = false
     start_several_inf::Bool = true
     modeltime::Int64 = 500
-    initialinf::Int64 = 1
+    initialinf::Int64 = 50
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     τmild::Int64 = 0 ## days before they self-isolate for mild cases
     fmild::Float64 = 0.0  ## percent of people practice self-isolation
@@ -119,15 +119,15 @@ end
     days_Rt::Array{Int64,1} = [100;200;300] #days to get Rt
 
     priority::Bool = false #prioritizing commorbid
-    sec_strain_trans::Float64 = 1.5 #transmissibility of second strain
-    ins_sec_strain::Bool = false #insert second strain?
+    sec_strain_trans::Float64 = 1.5#1.5 #transmissibility of second strain
+    ins_sec_strain::Bool = true #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
     time_sec_strain::Int64 = 92 #when will the second strain introduced
 
-    ins_third_strain::Bool = false #insert second strain?
-    initialinf3::Int64 = 1 #number of initial infected of second strain
+    ins_third_strain::Bool = true #insert second strain?
+    initialinf3::Int64 = 5 #number of initial infected of second strain
     time_third_strain::Int64 = 150 #when will the third strain introduced
-    third_strain_trans::Float64 = 0.0 #transmissibility of second strain
+    third_strain_trans::Float64 = 1.0 #transmissibility of second strain
     reduction_recovered::Float64 = 0.21
 
     max_vac_delay::Int64 = 42 #max delay before protection starts waning
@@ -135,25 +135,25 @@ end
     vac_effect::Int64 = 1 #vac effect, if 1 the difference between doses is added to first, if 2 the second dose is always vac_efficacy
     no_cap::Bool = true ## no maximum coverage
     strain_ef_red::Float64 = 0.0 #reduction in efficacy against second strain
-    strain_ef_red3::Float64 = reduction_recovered #reduction in efficacy against second strain
+    strain_ef_red3::Float64 = 1.0#reduction_recovered #reduction in efficacy against second strain
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
     time_change::Int64 = 999
     how_long::Int64 = 1
     how_much::Float64 = 0.0
     rate_increase::Float64 = how_much/how_long
-    time_change_contact::Array{Int64,1} = [1;map(y->45+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->112+y,0:7);map(y->127+y,0:7);map(y->194+y,0:6)]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
+    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->112+y,0:7);map(y->127+y,0:7);map(y->194+y,0:6)]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
     change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/8)*y,1:8);map(y->1.054-(0.19/8)*y,1:8);map(y->0.864+(0.086/7)*y,1:7)]#;map(y->0.864+rate_increase*y,1:how_long)]#;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.013)*y,1:10);map(y->0.97+(0.011)*y,1:10);map(y->1.08-(0.19/7)*y,1:7);map(y->0.89+0.01*y,1:4)]#;map(y->0.89+rate_increase*y,1:how_long)]#[1.0;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.08/9)*y,1:9);map(y->1.02-0.01*y,1:12);map(y->0.9+0.0028*y,1:10);map(y->0.9+rate_increase*y,1:how_long)]#;map(y->0.9+rate_increase*y,1:how_long)]#;,map(y->1.18-0.018*y,1:20);map(y->0.82+0.036*y,1:5);map(y->1.0+rate_inc*y,1:n_days_inc)]
     contact_change_rate::Float64 = 1.0 #the rate
     contact_change_2::Float64 = 0.5
 
     relaxed::Bool = false
-    relaxing_time::Int64 = 999
+    relaxing_time::Int64 = 215
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
     time_back_to_normal::Int64 = 999
-    back_normal_rate::Float64 = 1.473684211 #2.105263158  ###1.789473684 => 0.85 ####1.473684211 =>0.7
+    back_normal_rate::Float64 = 2.105263158#1.473684211 #  ###1.789473684 => 0.85 ####1.473684211 =>0.7
 end
 
 Base.@kwdef mutable struct ct_data_collect
@@ -295,7 +295,8 @@ function main(ip::ModelParameters,sim::Int64)
                 insert_infected(PRE, p.initialinf2, 4, 2)[1]
                 h_init2 = findall(x->x.health  in (LAT2,MILD2,INF2,PRE2,ASYMP2),humans)
                 h_init2 = [h_init2]
-            elseif p.ins_third_strain && st == p.time_third_strain
+            end
+            if p.ins_third_strain && st == p.time_third_strain
                 insert_infected(PRE, p.initialinf3, 4, 3)[1]
                 h_init3 = findall(x->x.health  in (LAT3,MILD3,INF3,PRE3,ASYMP3),humans)
                 h_init3 = [h_init3]
@@ -1329,7 +1330,7 @@ function move_to_inf(x::Human)
  
     # h = prob of hospital, c = prob of icu AFTER hospital    
    
-    h = x.comorbidity == 1 ? 0.376 : 0.09 #0.376
+    h = x.comorbidity == 1 ? 1.0 : 0.09 #0.376
     c = x.comorbidity == 1 ? 0.33 : 0.25
     
     groups = [0:34,35:54,55:69,70:84,85:100]
@@ -1658,7 +1659,7 @@ function dyntrans(sys_time, grps)
                         # tranmission dynamics
                             if  y.health == SUS && y.swap == UNDEF                  
                                 beta = _get_betavalue(sys_time, xhealth)
-                                if rand() < beta*((1-p.strain_ef_red)^(Int(x.strain==2)))
+                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red)^(x.strain-1))
                                     totalinf += 1
                                     
                                     y.exp = y.tis   ## force the move to latent in the next time step.
