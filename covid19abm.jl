@@ -41,6 +41,7 @@ Base.@kwdef mutable struct Human
     strain::Int16 = -1
     index_day::Int64 = 1
     relaxed::Bool = false
+    recovered::Bool = false
 end
 
 ## default system parameters
@@ -118,7 +119,6 @@ end
     extra_dose_day::Int64 = 999 #when extra doses are implemented
     days_Rt::Array{Int64,1} = [100;200;300] #days to get Rt
 
-    priority::Bool = false #prioritizing commorbid
     sec_strain_trans::Float64 = 1.5#1.5 #transmissibility of second strain
     ins_sec_strain::Bool = true #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
@@ -135,25 +135,27 @@ end
     vac_effect::Int64 = 1 #vac effect, if 1 the difference between doses is added to first, if 2 the second dose is always vac_efficacy
     no_cap::Bool = true ## no maximum coverage
     strain_ef_red::Float64 = 0.0 #reduction in efficacy against second strain
-    strain_ef_red3::Float64 = 1.0#reduction_recovered #reduction in efficacy against second strain
+    strain_ef_red3::Float64 = 0.8 #reduction in efficacy against second strain
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
-    time_change::Int64 = 999
-    how_long::Int64 = 1
-    how_much::Float64 = 0.0
-    rate_increase::Float64 = how_much/how_long
+    time_change::Int64 = 999## used to calibrate the model
+    how_long::Int64 = 1## used to calibrate the model
+    how_much::Float64 = 0.0## used to calibrate the model
+    rate_increase::Float64 = how_much/how_long## used to calibrate the model
     time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->112+y,0:7);map(y->127+y,0:7);map(y->194+y,0:6)]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
     change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/8)*y,1:8);map(y->1.054-(0.19/8)*y,1:8);map(y->0.864+(0.086/7)*y,1:7)]#;map(y->0.864+rate_increase*y,1:how_long)]#;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.013)*y,1:10);map(y->0.97+(0.011)*y,1:10);map(y->1.08-(0.19/7)*y,1:7);map(y->0.89+0.01*y,1:4)]#;map(y->0.89+rate_increase*y,1:how_long)]#[1.0;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.08/9)*y,1:9);map(y->1.02-0.01*y,1:12);map(y->0.9+0.0028*y,1:10);map(y->0.9+rate_increase*y,1:how_long)]#;map(y->0.9+rate_increase*y,1:how_long)]#;,map(y->1.18-0.018*y,1:20);map(y->0.82+0.036*y,1:5);map(y->1.0+rate_inc*y,1:n_days_inc)]
-    contact_change_rate::Float64 = 1.0 #the rate
-    contact_change_2::Float64 = 0.5
+    contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
+    contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
     relaxed::Bool = false
-    relaxing_time::Int64 = 215
+    relaxing_time::Int64 = 215 ### relax measures for vaccinated
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
-    time_back_to_normal::Int64 = 999
-    back_normal_rate::Float64 = 2.105263158#1.473684211 #  ###1.789473684 => 0.85 ####1.473684211 =>0.7
+    time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
+    ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
+    ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
+    back_normal_rate::Float64 = 1.473684211#2.105263158#1.473684211 #  ###1.789473684 => 0.85 ####1.473684211 =>0.7
 end
 
 Base.@kwdef mutable struct ct_data_collect
@@ -335,7 +337,7 @@ function main(ip::ModelParameters,sim::Int64)
             global  p.fpreiso = _fpreiso
             end=#
             _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
-            dyntrans(st, grps)
+            dyntrans(st, grps,sim)
             if st in p.days_Rt
                 aux1 = findall(x->x.swap == LAT,humans)
                 h_init1 = vcat(h_init1,[aux1])
@@ -370,7 +372,7 @@ function main(ip::ModelParameters,sim::Int64)
             global  p.fpreiso = _fpreiso
             end=#
             _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
-            dyntrans(st, grps)
+            dyntrans(st, grps,sim)
             if st in p.days_Rt
                 aux1 = findall(x->x.swap == LAT,humans)
                 h_init1 = vcat(h_init1,[aux1])
@@ -792,6 +794,10 @@ function herd_immu_dist_4(sim::Int64,strain::Int64)
         vec_n = [105; 757; 1448; 481; 87; 122]
 
         N = 16
+    elseif p.herd == 50
+        vec_n = map(y->y*5,[32; 279; 489; 143; 24; 33])
+
+        N = 16
     elseif p.herd == 0
         vec_n = [0;0;0;0;0;0]
        
@@ -1155,8 +1161,8 @@ function move_to_latent(x::Human)
     symp_pcts = [0.7, 0.623, 0.672, 0.672, 0.812, 0.812] #[0.3 0.377 0.328 0.328 0.188 0.188]
     age_thres = [4, 19, 49, 64, 79, 999]
     g = findfirst(y-> y >= x.age, age_thres)
-     
-    if rand() < (symp_pcts[g])*(1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    auxiliar = x.recovered ? (1-p.vac_efficacy_symp[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    if rand() < (symp_pcts[g])*auxiliar
         if x.strain == 1
             x.swap = PRE
         elseif x.strain == 2
@@ -1218,8 +1224,8 @@ function move_to_pre(x::Human)
     x.health = x.swap
     x.tis = 0   # reset time in state 
     x.exp = x.dur[3] # get the presymptomatic period
-    
-    if rand() < (1-θ[x.ag])*(1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    auxiliar = x.recovered ? (1-p.vac_efficacy_sev[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    if rand() < (1-θ[x.ag])*auxiliar
         if x.strain == 1
             x.swap = INF
         elseif x.strain == 2
@@ -1378,43 +1384,46 @@ function move_to_inf(x::Human)
        
     else ## no hospital for this lucky (but severe) individual 
         aux = (p.mortality_inc^Int(x.strain==2))
-        if rand() < mh[gg]*aux
-            x.exp = x.dur[4] 
+        
+        if x.iso || rand() < p.fsevere 
+            x.exp = 1  ## 1 day isolation for severe cases 
             if x.strain == 1
-                x.swap = DED
+                x.swap = IISO
             elseif x.strain == 2
-                x.swap = DED2
+                x.swap = IISO2
             elseif x.strain == 3
-                x.swap = DED3
+                x.swap = IISO3
             else
                 error("No strain in move to inf")
-            end 
-            #x.swap = x.strain == 1 ? DED : DED2
-        else 
-            x.exp = x.dur[4]  
-            if x.strain == 1
-                x.swap = REC 
-            elseif x.strain == 2
-                x.swap = REC2
-            elseif x.strain == 3
-                x.swap = REC3 
-            else
-                error("No strain in move to miso")
-            end
-            if x.iso || rand() < p.fsevere 
-                x.exp = 1  ## 1 day isolation for severe cases 
+            end    
+            #x.swap = x.strain == 1 ? IISO : IISO2
+        else
+            if rand() < mh[gg]*aux
+                x.exp = x.dur[4] 
                 if x.strain == 1
-                    x.swap = IISO
+                    x.swap = DED
                 elseif x.strain == 2
-                    x.swap = IISO2
+                    x.swap = DED2
                 elseif x.strain == 3
-                    x.swap = IISO3
+                    x.swap = DED3
                 else
                     error("No strain in move to inf")
-                end    
-                #x.swap = x.strain == 1 ? IISO : IISO2
-            end  
-        end
+                end 
+            else 
+                x.exp = x.dur[4]  
+                if x.strain == 1
+                    x.swap = REC 
+                elseif x.strain == 2
+                    x.swap = REC2
+                elseif x.strain == 3
+                    x.swap = REC3 
+                else
+                    error("No strain in move to miso")
+                end
+            end
+
+        end  
+       
     end
     ## before returning, check if swap is set 
     x.swap == UNDEF && error("agent I -> ?")
@@ -1423,14 +1432,32 @@ end
 function move_to_iiso(x::Human)
     ## transfers human h to the sever isolated infection stage for γ days
     x.health = x.swap
-    if x.strain == 1
-        x.swap = REC 
-    elseif x.strain == 2
-        x.swap = REC2
-    elseif x.strain == 3
-        x.swap = REC3 
-    else
-        error("No strain in move to miso")
+    groups = [0:34,35:54,55:69,70:84,85:100]
+    gg = findfirst(y-> x.age in y,groups)
+    mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381] # death rate for severe cases.
+    aux = (p.mortality_inc^Int(x.strain==2))
+    if rand() < mh[gg]*aux
+        x.exp = x.dur[4] 
+        if x.strain == 1
+            x.swap = DED
+        elseif x.strain == 2
+            x.swap = DED2
+        elseif x.strain == 3
+            x.swap = DED3
+        else
+            error("No strain in move to inf")
+        end 
+    else 
+        x.exp = x.dur[4]  
+        if x.strain == 1
+            x.swap = REC 
+        elseif x.strain == 2
+            x.swap = REC2
+        elseif x.strain == 3
+            x.swap = REC3 
+        else
+            error("No strain in move to miso")
+        end
     end
     #x.swap = x.strain == 1 ? REC : REC2
     x.tis = 0     ## reset time in state 
@@ -1549,6 +1576,11 @@ end
 
 function move_to_recovered(h::Human)
     h.health = h.swap
+
+    if h.strain in (1,2)
+        h.recovered = true
+    end
+
     h.swap = UNDEF
     h.tis = 0 
     h.exp = 999 ## stay recovered indefinitely
@@ -1622,13 +1654,15 @@ export _get_betavalue
     return cnt
 end
 
-function dyntrans(sys_time, grps)
+function dyntrans(sys_time, grps,sim)
     totalmet = 0 # count the total number of contacts (total for day, for all INF contacts)
     totalinf = 0 # count number of new infected 
     ## find all the people infectious
-    
+    rng = MersenneTwister(246*sys_time*sim)
+    pos = shuffle(rng,1:length(humans))
     # go through every infectious person
-    for x in humans
+    for x in humans[pos]
+        
         if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2)
             #x = humans[xid]
             xhealth = x.health
@@ -1713,7 +1747,7 @@ function dyntrans(sys_time, grps)
                         # tranmission dynamics
                             if  y.health == SUS && y.swap == UNDEF                  
                                 beta = _get_betavalue(sys_time, xhealth)
-                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3))
+                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3)) ###(1-0.0*(1-0.8)) = (1-0.0) = 1.0*beta
                                     totalinf += 1
                                     
                                     y.exp = y.tis   ## force the move to latent in the next time step.
@@ -1730,7 +1764,7 @@ function dyntrans(sys_time, grps)
                                 end  
                             elseif y.health in (REC,REC2) && y.swap == UNDEF
                                 beta = _get_betavalue(sys_time, xhealth)
-                                if rand() < beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3))*(p.reduction_recovered)
+                                if rand() < beta*(p.reduction_recovered) #0.21
                                     totalinf += 1
                                     
                                     y.exp = y.tis   ## force the move to latent in the next time step.

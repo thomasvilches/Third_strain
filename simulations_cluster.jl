@@ -254,7 +254,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     main_folder = "/data/thomas-covid/Third_Strain"
     #main_folder = "."
    
-    RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.sec_strain_trans)_$(ip.file_index)") ##  
+    RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.third_strain_trans)_$(ip.strain_ef_red3)_$(ip.file_index)") ##  
    
     if !Base.Filesystem.isdir(RF)
         Base.Filesystem.mkpath(RF)
@@ -317,8 +317,8 @@ end
  =#
 
 #run_param_fix(0.12,20,60,1.0,1.0,1.4,true,"pfizer")
-## now, running vaccine and herd immunity, focusing and not focusing in comorbidity, first  argument turns off vac
-function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate = false,vac = "none",index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
+## 
+function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate = false,vac = "none",red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
     
     
     if vac == "pfizer"
@@ -358,7 +358,7 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate
     vac_efficacy_symp=$symp, vac_efficacy_sev = $sev,
     herd = $(h_i),start_several_inf=true,initialinf3=$ic,
     ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
-    third_strain_trans=$strain2_trans,
+    third_strain_trans=$strain2_trans, strain_ef_red3 = $red,
     min_age_vac=$ag_v, time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
 
     folder = create_folder(ip,vac)
