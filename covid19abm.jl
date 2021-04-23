@@ -281,110 +281,70 @@ function main(ip::ModelParameters,sim::Int64)
     grps = get_ag_dist()
     count_change::Int64 = 1
     # start the time loop
+    time_vac::Int64 = 1
     if p.vaccinating
-        time_vac::Int64 = 1
-    
         vac_ind2 = vac_selection(sim)
         vac_ind = Array{Int64,1}(undef,length(vac_ind2))
         for i = 1:length(vac_ind2)
             vac_ind[i] = vac_ind2[i]
         end
         v1,v2 = vac_index_new(length(vac_ind))
-        
-        
-        for st = 1:p.modeltime
-            if p.ins_sec_strain && st == p.time_sec_strain
-                insert_infected(PRE, p.initialinf2, 4, 2)[1]
-                h_init2 = findall(x->x.health  in (LAT2,MILD2,INF2,PRE2,ASYMP2),humans)
-                h_init2 = [h_init2]
-            end
-            if p.ins_third_strain && st == p.time_third_strain
-                insert_infected(PRE, p.initialinf3, 4, 3)[1]
-                h_init3 = findall(x->x.health  in (LAT3,MILD3,INF3,PRE3,ASYMP3),humans)
-                h_init3 = [h_init3]
-            end
-            if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st
-                setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
-                count_change += 1
-            end
-            # start of day
-            #println("$st")
-
-            if st == p.relaxing_time
-                setfield!(p, :relaxed, true)
-              #=   for x in humans
-                    if x.vac_status >= p.status_relax
-                        x.relaxed = true
-                    end
-                end =#
-            elseif st == p.time_back_to_normal
-                setfield!(p, :contact_change_2, p.contact_change_2*p.back_normal_rate)
-                #setfield!(p, :contact_change_rate, 1.0)
-            end
-
-            if time_vac <= (length(v1)-1)
-                #if st%7 > 0 #we are vaccinating everyday
-                    vac_ind2 = vac_time!(vac_ind,time_vac,v1,v2)
-                    #vac_ind = [vac_ind vac_ind2]
-                    resize!(vac_ind, length(vac_ind2))
-                    for i = 1:length(vac_ind2)
-                        vac_ind[i] = vac_ind2[i]
-                    end
-                    time_vac += 1
-                #end
-            end
-            #=if st == p.tpreiso ## time to introduce testing
-            global  p.fpreiso = _fpreiso
-            end=#
-            _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
-            dyntrans(st, grps,sim)
-            if st in p.days_Rt
-                aux1 = findall(x->x.swap == LAT,humans)
-                h_init1 = vcat(h_init1,[aux1])
-                aux2 = findall(x->x.swap == LAT2,humans)
-                h_init2 = vcat(h_init2,[aux2])
-                aux3 = findall(x->x.swap == LAT3,humans)
-                h_init3 = vcat(h_init3,[aux3])
-            end
-            sw = time_update()
-            # end of day
-        end
-    
     else
-        for st = 1:p.modeltime
-            # start of day
-            if p.ins_sec_strain && st == p.time_sec_strain
-                insert_infected(PRE, p.initialinf2, 4, 2)[1]
-                h_init2 = findall(x->x.health  in (LAT2,MILD2,INF2,PRE2,ASYMP2),humans)
-                h_init2 = [h_init2]
-            elseif p.ins_third_strain && st == p.time_third_strain
-                insert_infected(PRE, p.initialinf3, 4, 3)[1]
-                h_init3 = findall(x->x.health  in (LAT3,MILD3,INF3,PRE3,ASYMP3),humans)
-                h_init3 = [h_init3]
-            end
-            if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st
-                setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
-                count_change += 1
-            end
-           
-            #println("$st")
-            #=if st == p.tpreiso ## time to introduce testing
-            global  p.fpreiso = _fpreiso
-            end=#
-            _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
-            dyntrans(st, grps,sim)
-            if st in p.days_Rt
-                aux1 = findall(x->x.swap == LAT,humans)
-                h_init1 = vcat(h_init1,[aux1])
-                aux2 = findall(x->x.swap == LAT2,humans)
-                h_init2 = vcat(h_init2,[aux2])
-                aux3 = findall(x->x.swap == LAT3,humans)
-                h_init3 = vcat(h_init3,[aux3])
-            end
-            sw = time_update()
-            # end of day
-        end
+        time_vac = 9999 #this guarantees that no one will be vaccinated
     end
+        
+    for st = 1:p.modeltime
+        if p.ins_sec_strain && st == p.time_sec_strain ##insert second strain
+            insert_infected(PRE, p.initialinf2, 4, 2)[1]
+            h_init2 = findall(x->x.health  in (LAT2,MILD2,INF2,PRE2,ASYMP2),humans)
+            h_init2 = [h_init2]
+        end
+        if p.ins_third_strain && st == p.time_third_strain #insert third strain
+            insert_infected(PRE, p.initialinf3, 4, 3)[1]
+            h_init3 = findall(x->x.health  in (LAT3,MILD3,INF3,PRE3,ASYMP3),humans)
+            h_init3 = [h_init3]
+        end
+        if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st ###change contact pattern throughout the time
+            setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
+            count_change += 1
+        end
+        # start of day
+        #println("$st")
+
+        if st == p.relaxing_time ### time that people vaccinated people is allowed to go back to normal
+            setfield!(p, :relaxed, true)
+        elseif st == p.time_back_to_normal ##time that non-vaccinated people is allowed to go back to normal
+            setfield!(p, :contact_change_2, p.contact_change_2*p.back_normal_rate)
+            #setfield!(p, :contact_change_rate, 1.0)
+        end
+
+        if time_vac <= (length(v1)-1) ## daily vaccination
+            #if st%7 > 0 #we are vaccinating everyday
+                vac_ind2 = vac_time!(vac_ind,time_vac,v1,v2)
+                #vac_ind = [vac_ind vac_ind2]
+                resize!(vac_ind, length(vac_ind2))
+                for i = 1:length(vac_ind2)
+                    vac_ind[i] = vac_ind2[i]
+                end
+                time_vac += 1
+            #end
+        end
+       
+        _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
+        dyntrans(st, grps,sim)
+        if st in p.days_Rt ### saves individuals that became latent on days_Rt
+            aux1 = findall(x->x.swap == LAT,humans)
+            h_init1 = vcat(h_init1,[aux1])
+            aux2 = findall(x->x.swap == LAT2,humans)
+            h_init2 = vcat(h_init2,[aux2])
+            aux3 = findall(x->x.swap == LAT3,humans)
+            h_init3 = vcat(h_init3,[aux3])
+        end
+        sw = time_update() ###update the system
+        # end of day
+    end
+    
+    
     return hmatrix,h_init1,h_init2,h_init3 ## return the model state as well as the age groups. 
 end
 export main
@@ -1690,7 +1650,7 @@ function dyntrans(sys_time, grps,sim)
                         else 
                             error("error -- strain set")
                         end
-                    elseif x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF 
+                    elseif (x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF)
                         adj_beta = beta*(p.reduction_recovered) #0.21
                     end
 
