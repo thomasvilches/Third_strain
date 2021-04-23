@@ -1662,7 +1662,7 @@ function dyntrans(sys_time, grps,sim)
     pos = shuffle(rng,1:length(humans))
     # go through every infectious person
     for x in humans[pos]        
-        if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2)
+        if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2, PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3)
             
             xhealth = x.health
             cnts = x.nextday_meetcnt
