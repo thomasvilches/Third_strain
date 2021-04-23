@@ -1658,8 +1658,8 @@ function dyntrans(sys_time, grps,sim)
     totalmet = 0 # count the total number of contacts (total for day, for all INF contacts)
     totalinf = 0 # count number of new infected 
     ## find all the people infectious
-    rng = MersenneTwister(246*sys_time*sim)
-    pos = shuffle(rng,1:length(humans))
+    #rng = MersenneTwister(246*sys_time*sim)
+    pos = shuffle(1:length(humans))
     # go through every infectious person
     for x in humans[pos]        
         if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2, PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3)
@@ -1690,7 +1690,7 @@ function dyntrans(sys_time, grps,sim)
                         else 
                             error("error -- strain set")
                         end
-                    elseif y.health in (REC, REC2) && y.swap == UNDEF
+                    elseif x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF 
                         adj_beta = beta*(p.reduction_recovered) #0.21
                     end
 
