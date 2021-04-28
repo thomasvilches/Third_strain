@@ -142,8 +142,8 @@ end
     how_long::Int64 = 1## used to calibrate the model
     how_much::Float64 = 0.0## used to calibrate the model
     rate_increase::Float64 = how_much/how_long## used to calibrate the model
-    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->112+y,0:7);map(y->127+y,0:7);map(y->194+y,0:6)]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
-    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/8)*y,1:8);map(y->1.054-(0.19/8)*y,1:8);map(y->0.864+(0.086/7)*y,1:7)]#;map(y->0.864+rate_increase*y,1:how_long)]#;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.013)*y,1:10);map(y->0.97+(0.011)*y,1:10);map(y->1.08-(0.19/7)*y,1:7);map(y->0.89+0.01*y,1:4)]#;map(y->0.89+rate_increase*y,1:how_long)]#[1.0;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.08/9)*y,1:9);map(y->1.02-0.01*y,1:12);map(y->0.9+0.0028*y,1:10);map(y->0.9+rate_increase*y,1:how_long)]#;map(y->0.9+rate_increase*y,1:how_long)]#;,map(y->1.18-0.018*y,1:20);map(y->0.82+0.036*y,1:5);map(y->1.0+rate_inc*y,1:n_days_inc)]
+    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->127+y,0:7);map(y->193+y,0:7)]#map(y->time_change+y,0:(how_long-1))]#]#map(y->time_change+y,0:(how_long-1))]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
+    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.19/8)*y,1:8);map(y->0.864+(0.06/8)*y,1:8)]##map(y->0.864+rate_increase*y,1:how_long)]#;map(y->0.864+rate_increase*y,1:how_long)]#;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.013)*y,1:10);map(y->0.97+(0.011)*y,1:10);map(y->1.08-(0.19/7)*y,1:7);map(y->0.89+0.01*y,1:4)]#;map(y->0.89+rate_increase*y,1:how_long)]#[1.0;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.08/9)*y,1:9);map(y->1.02-0.01*y,1:12);map(y->0.9+0.0028*y,1:10);map(y->0.9+rate_increase*y,1:how_long)]#;map(y->0.9+rate_increase*y,1:how_long)]#;,map(y->1.18-0.018*y,1:20);map(y->0.82+0.036*y,1:5);map(y->1.0+rate_inc*y,1:n_days_inc)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
@@ -155,7 +155,7 @@ end
     time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
     ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
-    back_normal_rate::Float64 = 1.473684211#2.105263158#1.473684211 #  ###1.789473684 => 0.85 ####1.473684211 =>0.7
+    back_normal_rate::Float64 = 1.5151515#2.118644068=>1 # ####1.483050847 =>0.7
 end
 
 Base.@kwdef mutable struct ct_data_collect
@@ -612,8 +612,9 @@ function vac_update(x::Human)
             x.vac_ef_sev = (p.vac_efficacy_sev[x.vac_status][x.index_day]-p.vac_efficacy_sev[x.vac_status][x.index_day-1])+x.vac_ef_sev
             x.index_day = min(length(p.days_to_protection[x.vac_status]),x.index_day+1)
         end
-
-        x.relaxed = p.relaxed && !x.relaxed && x.vac_status == p.status_relax && x.days_vac >= p.relax_after ? true : false
+        if !x.relaxed
+            x.relaxed = p.relaxed &&  x.vac_status >= p.status_relax && x.days_vac >= p.relax_after ? true : false
+        end
         x.days_vac += 1
 
     elseif x.vac_status == 2
@@ -643,7 +644,9 @@ function vac_update(x::Human)
 
             x.index_day = min(length(p.days_to_protection[x.vac_status]),x.index_day+1)
         end
-        x.relaxed = p.relaxed && !x.relaxed && x.vac_status == p.status_relax && x.days_vac >= p.relax_after ? true : false
+        if !x.relaxed
+            x.relaxed = p.relaxed &&  x.vac_status >= p.status_relax && x.days_vac >= p.relax_after ? true : false
+        end
         x.days_vac += 1
     end
    
@@ -1645,7 +1648,7 @@ function dyntrans(sys_time, grps,sim)
                     if y.health == SUS && y.swap == UNDEF                  
                         if (x.strain == 1 || x.strain == 2) 
                             adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red)^(x.strain-1))
-                        elseif x.strain == 3  
+                        elseif x.strain == 3
                             adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3)) ###(1-0.0*(1-0.8)) = (1-0.0) = 1.0*beta
                         else 
                             error("error -- strain set")
