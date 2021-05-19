@@ -18,7 +18,7 @@ using DelimitedFiles
 
 #@everywhere using covid19abm
 
-addprocs(SlurmManager(500), N=17, topology=:master_worker, exeflags="--project=.")
+addprocs(SlurmManager(250), N=8, topology=:master_worker, exeflags="--project=.")
 @everywhere using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 @everywhere include("covid19abm.jl")
 @everywhere const cv=covid19abm
@@ -111,7 +111,6 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
     n_dead_vac2 = [cdr[i].n_dead_vac2 for i=1:nsims]
     n_hosp_vac2 = [cdr[i].n_hosp_vac2 for i=1:nsims]
     n_icu_vac2 = [cdr[i].n_icu_vac2 for i=1:nsims]
-
     n_dead_nvac = [cdr[i].n_dead_nvac for i=1:nsims]
     n_inf_nvac = [cdr[i].n_inf_nvac for i=1:nsims]
     n_hosp_nvac = [cdr[i].n_hosp_nvac for i=1:nsims]
@@ -297,7 +296,6 @@ end
         sev=[[0.921],[0.921;1.0]]
         ag_v = 18
     end
-
     
     #b = bd[h_i]
     #ic = init_con[h_i]
@@ -307,9 +305,7 @@ end
     ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
     sec_strain_trans=$strain2_trans,
     min_age_vac=$ag_v, time_change = $when_, how_long = $hl, how_much = $hm)
-
     folder = create_folder(ip,vac)
-
     #println("$v_e $(ip.vaccine_ef)")
     run(ip,nsims,folder)
    

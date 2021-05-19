@@ -84,10 +84,11 @@ end
     hcw_vac_comp::Float64 = 0.95
     hcw_prop::Float64 = 0.05 #prop que é trabalhador da saude
     
-    eld_comp::Float64 = 0.90
-    old_adults::Float64 = 0.9
+    eld_comp::Float64 = 0.95
+    old_adults::Float64 = 0.95
     young_adults::Float64 = 0.8
-    kid_comp::Float64 = 0.0
+    kid_comp::Float64 = 0.8
+    day_insert_kids::Int64 = 255
     #comor_comp::Float64 = 0.7 #prop comorbidade tomam
 
     vac_period::Int64 = 28 #period between two doses (minimum)
@@ -109,7 +110,7 @@ end
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
     #fd_1::Array{Int64,1} = [0;18;60;110;150;408;350;220;194;202;219;302;207;330;536;600;660;750;800] #daily vaccination rate
     factor::Float64 = 0.85
-    fd_1::Array{Int64,1} =[0;map(y->Int(floor(y*factor)),[80;155;223;406;383;404;478;547;480;629;700;738;788;893;719;900;1000])]
+    fd_1::Array{Int64,1} = [0;68;132;164;275;416;386;415;511;510;527;644;725;741;815;912;960;961;842;600]
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
     sec_dose_delay::Int64 = vac_period #delay in second dose
@@ -124,11 +125,12 @@ end
     initialinf2::Int64 = 1 #number of initial infected of second strain
     time_sec_strain::Int64 = 92 #when will the second strain introduced
 
-    ins_third_strain::Bool = true #insert second strain?
-    initialinf3::Int64 = 5 #number of initial infected of second strain
+    ins_third_strain::Bool = true #insert third strain?
+    initialinf3::Int64 = 5 #number of initial infected of third strain
     time_third_strain::Int64 = 150 #when will the third strain introduced
-    third_strain_trans::Float64 = 1.0 #transmissibility of second strain
+    third_strain_trans::Float64 = 1.0 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
+
 
     max_vac_delay::Int64 = 42 #max delay before protection starts waning
     min_eff = 0.02 #min efficacy when waning
@@ -289,6 +291,16 @@ function main(ip::ModelParameters,sim::Int64)
             vac_ind[i] = vac_ind2[i]
         end
         v1,v2 = vac_index_new(length(vac_ind))
+
+        aux = v1[p.day_insert_kids+2]
+
+        if aux < 0
+            #aux = findfirst(y-> y<0, v1)-1
+            aux = maximum(v1)
+        end
+
+        rng = MersenneTwister(485*sim)
+        vac_ind = [vac_ind[1:aux];shuffle(rng,vac_ind[aux+1:end])]
     else
         time_vac = 9999 #this guarantees that no one will be vaccinated
     end
@@ -365,21 +377,23 @@ function vac_selection(sim::Int64)
     #pos_com = sample(pos_com,Int(round(p.comor_comp*length(pos_com))),replace=false)
 
 
-    pos_eld = findall(x-> humans[x].age>=70, 1:length(humans))
+    pos_eld = findall(x-> humans[x].age>=75, 1:length(humans))
     pos_eld = sample(rng,pos_eld,Int(round(p.eld_comp*length(pos_eld))),replace=false)
 
-    pos_old = findall(x-> humans[x].age>=50 && humans[x].age<70 && humans[x].comorbidity == 0 && !humans[x].hcw, 1:length(humans))
+    pos_old = findall(x-> humans[x].age>=65 && humans[x].age<75 && humans[x].comorbidity == 0 && !humans[x].hcw, 1:length(humans))
     pos_old = sample(rng,pos_old,Int(round(p.old_adults*length(pos_old))),replace=false)
 
-    pos_old_c = findall(x-> humans[x].age>=50 && humans[x].age<70 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
+    pos_old_c = findall(x-> humans[x].age>=65 && humans[x].age<75 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
     pos_old_c = sample(rng,pos_old_c,Int(round(p.old_adults*length(pos_old_c))),replace=false)
 
-    pos_young = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<50 && humans[x].comorbidity == 0  && !humans[x].hcw, 1:length(humans))
-    pos_young = sample(rng,pos_young,Int(round(p.young_adults*length(pos_young))),replace=false)
-
-    pos_young_c = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<50 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
+    pos_young_c = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<65 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
     pos_young_c = sample(rng,pos_young_c,Int(round(p.young_adults*length(pos_young_c))),replace=false)
 
+    pos_young_1 = findall(x-> humans[x].age>=40 && humans[x].age<65 && humans[x].comorbidity == 0  && !humans[x].hcw, 1:length(humans))
+    pos_young_1 = sample(rng,pos_young_1,Int(round(p.young_adults*length(pos_young_1))),replace=false)
+
+    pos_young_2 = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<40 && humans[x].comorbidity == 0  && !humans[x].hcw, 1:length(humans))
+    pos_young_2 = sample(rng,pos_young_2,Int(round(p.young_adults*length(pos_young_2))),replace=false)
 
     pos_kid = findall(x-> humans[x].age>=12 && humans[x].age<p.min_age_vac, 1:length(humans))
     pos_kid = sample(rng,pos_kid,Int(round(p.kid_comp*length(pos_kid))),replace=false)
@@ -393,48 +407,38 @@ function vac_selection(sim::Int64)
     #pos2 = shuffle([pos_n_com;pos_y])
     #pos2 = [pos_old;pos_young;pos_kid]
 
-    pos1 = shuffle(rng,[pos_hcw;pos_eld])
-    pos_11 = pos1[1:Int(floor(length(pos1)/2))]
-    pos_12 = pos1[Int(floor(length(pos1)/2)+1):end]
+    #pos1 = shuffle(rng,[pos_hcw;pos_eld])
+    #pos_11 = pos1[1:Int(floor(length(pos1)/2))]
+    #pos_12 = pos1[Int(floor(length(pos1)/2)+1):end]
 
-    pos2 = shuffle(rng,[pos_old_c;pos_young_c])
+    pos2 = shuffle(rng,[pos_eld;pos_old_c;pos_young_c])
 
-    pos_21 = pos2[1:Int(floor(length(pos2)/2))]
-    pos_22 = pos2[Int(floor(length(pos2)/2)+1):end]
+    ll = length([pos_young_1;pos_young_2])
 
-    pos_o1 = pos_old[1:Int(floor(length(pos_old)/2))]
-    pos_o2 = pos_old[Int(floor(length(pos_old)/2)+1):end]
+    wv1 = repeat([0.6],length(pos_young_1))
+    wv2 = repeat([0.4],length(pos_young_2))
 
-    pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
-    pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
+    wv = Weights([wv1;wv2])
 
-    pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
-    pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
+    pos3 = sample(rng,[pos_young_1;pos_young_2],wv,ll,replace = false)
 
-    pos_k1 = pos_kid[1:Int(floor(length(pos_kid)/2))]
-    pos_k2 = pos_kid[Int(floor(length(pos_kid)/2)+1):end]
+   # pos_21 = pos2[1:Int(floor(length(pos2)/2))]
+   # pos_22 = pos2[Int(floor(length(pos2)/2)+1):end]
+
+    #pos_o1 = pos_old[1:Int(floor(length(pos_old)/2))]
+    #pos_o2 = pos_old[Int(floor(length(pos_old)/2)+1):end]
+
+    #pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
+    #pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
+
+    #pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
+    #pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
+
+    #pos_k1 = pos_kid[1:Int(floor(length(pos_kid)/2))]
+    #pos_k2 = pos_kid[Int(floor(length(pos_kid)/2)+1):end]
   
-    v = [pos_11;shuffle(rng,[pos_12;pos_21]);shuffle(rng,[pos_22;pos_o1]);shuffle(rng,[pos_o2;pos_y1]);shuffle(rng,[pos_y2;pos_k1]);pos_k2]
-
-   #=  if p.no_cap
-
-    elseif p.set_g_cov
-        if p.cov_val*p.popsize > length(v)
-            error("general population compliance is not enough to reach the coverage.")
-            exit(1)
-        else
-            aux = Int(round(p.cov_val*p.popsize))
-            v = v[1:aux]
-        end
-    else
-        if p.fixed_cov*p.popsize > length(v)
-            error("general population compliance is not enough to reach the coverage.")
-            exit(1)
-        else
-            aux = Int(round(p.fixed_cov*p.popsize))
-            v = v[1:aux]
-        end
-    end =#
+    #v = [pos_11;shuffle(rng,[pos_12;pos_21]);shuffle(rng,[pos_22;pos_o1]);shuffle(rng,[pos_o2;pos_y1]);pos_y2;pos_kid]#shuffle(rng,[pos_y2;pos_k1]);pos_k2]
+    v = [pos_hcw;pos2;pos_old;pos3;pos_kid]#shuffle(rng,[pos_y2;pos_k1]);pos_k2]
 
     return v
 end
@@ -1769,7 +1773,6 @@ function negative_binomials_shelter_r()
     ## the means/sd here are calculated using _calc_avgag
     means = [2.86, 4.7, 3.86, 3.15, 2.24]
     sd = [2.14, 3.28, 2.94, 2.66, 1.95]
-
     means = means*p.contact_change_rate
     sd = sd*p.contact_change_rate
     totalbraks = length(means)
@@ -1782,7 +1785,6 @@ function negative_binomials_shelter_r()
     return nbinoms   
 end
 const nbs_shelter_r = negative_binomials_shelter_r()
-
 export negative_binomials_shelter_r,  nbs_shelter_r =#
 
 ## internal functions to do intermediate calculations
