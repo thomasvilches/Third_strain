@@ -14,7 +14,7 @@ Model features include:
 - Isolation of symptomatic individuals
 - The average number of daily contacts can be changed to fit to data
 
-## How to download an run
+## How to download and run
 
 Download the entire repository as a **ZIP** or **clone** the repository.
 
