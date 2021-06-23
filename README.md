@@ -57,7 +57,7 @@ include("scen.jl")
 
 ## Model output
 
-***First, make sure that the address inside function 'create_folder' in file [simulations_cluster](simulations_cluster.jl) points to a valid directory in your system.*** 
+***First, make sure that the address 'main_folder' inside function 'create_folder' in file [simulations_cluster](simulations_cluster.jl) points to a valid directory in your system.*** 
 
 The model is parameterized to fit to data from US from Octuber to May. The [incidence data](cases_us.csv) was taken from [NY times](https://github.com/nytimes/covid-19-data/). The function 'run_param_scen' will generate a folder, inside the pointed directory, named **results\__b_\_herd\_immu\__h_\__vaccine_\__trans_\__r_\__index_** in which all the ***variables*** are the ones cited in the previous section. ***b*** is the probability, but the '.' is replaced by '\_'.
 
@@ -68,4 +68,4 @@ Inside this folder, one will find different data files. The most important ones 
 
 - \*\* stands for **all**, **ag1**, **ag2**, **ag3**, **ag4**, **ag5**, **ag6**. Which are the data for the entire population or each one of the six age groups in the model.
 
-The files contain a *modeltime* x *number of simulations* (by default 501x501) matrix. The first row is the heading of the file and the first column of it is the timeline. The other columns are the incidence of a given outcome in the given day of simulation.
+The files contain a *modeltime* x *number of simulations* (by default 500x500) matrix. The first row is the heading of the file and the first column of it is the timeline. The other columns are the incidence of a given outcome in the given day of simulation.
