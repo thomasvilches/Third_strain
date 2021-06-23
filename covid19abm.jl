@@ -75,8 +75,6 @@ end
     vac_com_dec_max::Float16 = 0.0 # how much the comorbidity decreases the vac eff
     vac_com_dec_min::Float16 = 0.0 # how much the comorbidity decreases the vac eff
     herd::Int8 = 0 #typemax(Int32) ~ millions
-    set_g_cov::Bool = false ###Given proportion for coverage
-    cov_val::Float64 = 0.2
     file_index::Int16 = 0
     
     #the cap for coverage should be 90% for 65+; 95% for HCW; 80% for 50-64; 60% for 16-49; and then 50% for 12-15 (starting from June 1).
@@ -108,8 +106,6 @@ end
 
     red_risk_perc::Float64 = 1.0 #relative isolation in vaccinated individuals
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
-    #fd_1::Array{Int64,1} = [0;18;60;110;150;408;350;220;194;202;219;302;207;330;536;600;660;750;800] #daily vaccination rate
-    factor::Float64 = 0.85
     fd_1::Array{Int64,1} = [0;68;132;164;275;416;386;415;511;510;527;644;725;741;815;912;960;961;842;600]
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
@@ -132,10 +128,6 @@ end
     reduction_recovered::Float64 = 0.21
 
 
-    max_vac_delay::Int64 = 42 #max delay before protection starts waning
-    min_eff = 0.02 #min efficacy when waning
-    vac_effect::Int64 = 1 #vac effect, if 1 the difference between doses is added to first, if 2 the second dose is always vac_efficacy
-    no_cap::Bool = true ## no maximum coverage
     strain_ef_red::Float64 = 0.0 #reduction in efficacy against second strain
     strain_ef_red3::Float64 = 0.8 #reduction in efficacy against second strain
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
