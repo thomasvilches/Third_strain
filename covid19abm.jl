@@ -1090,7 +1090,6 @@ end
 
 function sample_epi_durations()
     # when a person is sick, samples the 
-    #lat_dist = Distributions.truncated(Gamma(3.122, 2.656),4,11.04) # truncated between 4 and 7
     lat_dist = Distributions.truncated(LogNormal(1.434, 0.661), 4, 7) # truncated between 4 and 7
     pre_dist = Distributions.truncated(Gamma(1.058, 5/2.3), 0.8, 3)#truncated between 0.8 and 3
     asy_dist = Gamma(5, 1)
