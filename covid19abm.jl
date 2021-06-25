@@ -1,7 +1,7 @@
 module covid19abm
 using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 
-@enum HEALTH SUS LAT PRE ASYMP MILD MISO INF IISO HOS ICU REC DED  LAT2 PRE2 ASYMP2 MILD2 MISO2 INF2 IISO2 HOS2 ICU2 REC2 DED2 LAT3 PRE3 ASYMP3 MILD3 MISO3 INF3 IISO3 HOS3 ICU3 REC3 DED3 UNDEF 
+@enum HEALTH SUS LAT PRE ASYMP MILD MISO INF IISO HOS ICU REC DED  LAT2 PRE2 ASYMP2 MILD2 MISO2 INF2 IISO2 HOS2 ICU2 REC2 DED2 LAT3 PRE3 ASYMP3 MILD3 MISO3 INF3 IISO3 HOS3 ICU3 REC3 DED3 LAT4 PRE4 ASYMP4 MILD4 MISO4 INF4 IISO4 HOS4 ICU4 REC4 DED4 UNDEF 
 
 Base.@kwdef mutable struct Human
     idx::Int64 = 0 
@@ -127,9 +127,14 @@ end
     third_strain_trans::Float64 = 1.0 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
 
-
-    strain_ef_red::Float64 = 0.0 #reduction in efficacy against second strain
-    strain_ef_red3::Float64 = 0.8 #reduction in efficacy against second strain
+    ins_fourth_strain::Bool = true #insert third strain?
+    initialinf4::Int64 = 1 #number of initial infected of third strain
+    time_fourth_strain::Int64 = 175 #when will the third strain introduced
+    fourth_strain_trans::Float64 = 1.6 #transmissibility of third strain
+    reduction_recovered_4::Float64 = 0.21
+    strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
+    strain_ef_red3::Float64 = 0.8 #reduction in efficacy against third strain
+    strain_ef_red4::Float64 = 0.8 #reduction in efficacy against third strain
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
     time_change::Int64 = 999## used to calibrate the model
@@ -174,7 +179,7 @@ export ModelParameters, HEALTH, Human, humans, BETAS
 
 function runsim(simnum, ip::ModelParameters)
     # function runs the `main` function, and collects the data as dataframes. 
-    hmatrix,hh1,hh2,hh3 = main(ip,simnum)            
+    hmatrix,hh1,hh2,hh3,hh4 = main(ip,simnum)            
     # get infectors counters
     infectors = _count_infectors()
 
@@ -227,6 +232,13 @@ function runsim(simnum, ip::ModelParameters)
             R03[i] = length(findall(k -> k.sickby in hh3[i],humans))/length(hh3[i])
         end
     end
+    R04 = zeros(Float64,size(hh3,1))
+
+    for i = 1:size(hh4,1)
+        if length(hh4[i]) > 0
+            R04[i] = length(findall(k -> k.sickby in hh4[i],humans))/length(hh4[i])
+        end
+    end
 
     #return (a=all, g1=ag1, g2=ag2, g3=ag3, g4=ag4, g5=ag5, infectors=infectors, vi = vac_idx,ve=vac_ef_i,com = comorb_idx,n_vac = n_vac,n_inf_vac = n_inf_vac,n_inf_nvac = n_inf_nvac)
     return (a=all, g1=ag1, g2=ag2, g3=ag3, g4=ag4, g5=ag5,g6=ag6, infectors=infectors,   
@@ -267,6 +279,7 @@ function main(ip::ModelParameters,sim::Int64)
     h_init1 = [h_init1]
     h_init2 = []
     h_init3 = []
+    h_init4 = []
     ## save the preisolation isolation parameters
     _fpreiso = p.fpreiso
     p.fpreiso = 0
@@ -295,6 +308,7 @@ function main(ip::ModelParameters,sim::Int64)
         vac_ind = [vac_ind[1:aux];shuffle(rng,vac_ind[aux+1:end])]
     else
         time_vac = 9999 #this guarantees that no one will be vaccinated
+        v1 = []
     end
         
     for st = 1:p.modeltime
@@ -307,6 +321,11 @@ function main(ip::ModelParameters,sim::Int64)
             insert_infected(PRE, p.initialinf3, 4, 3)[1]
             h_init3 = findall(x->x.health  in (LAT3,MILD3,INF3,PRE3,ASYMP3),humans)
             h_init3 = [h_init3]
+        end
+        if p.ins_fourth_strain && st == p.time_fourth_strain #insert third strain
+            insert_infected(PRE, p.initialinf3, 4, 4)[1]
+            h_init4 = findall(x->x.health  in (LAT4,MILD4,INF4,PRE4,ASYMP4),humans)
+            h_init4 = [h_init4]
         end
         if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st ###change contact pattern throughout the time
             setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
@@ -343,13 +362,15 @@ function main(ip::ModelParameters,sim::Int64)
             h_init2 = vcat(h_init2,[aux2])
             aux3 = findall(x->x.swap == LAT3,humans)
             h_init3 = vcat(h_init3,[aux3])
+            aux4 = findall(x->x.swap == LAT4,humans)
+            h_init4 = vcat(h_init4,[aux4])
         end
         sw = time_update() ###update the system
         # end of day
     end
     
     
-    return hmatrix,h_init1,h_init2,h_init3 ## return the model state as well as the age groups. 
+    return hmatrix,h_init1,h_init2,h_init3, h_init4 ## return the model state as well as the age groups. 
 end
 export main
 
@@ -390,19 +411,6 @@ function vac_selection(sim::Int64)
     pos_kid = findall(x-> humans[x].age>=12 && humans[x].age<p.min_age_vac, 1:length(humans))
     pos_kid = sample(rng,pos_kid,Int(round(p.kid_comp*length(pos_kid))),replace=false)
 
-    #pos_n_com = findall(x->humans[x].comorbidity == 0 && !(x in pos_hcw) && humans[x].age<65 && humans[x].age>=p.min_age_vac, 1:length(humans))
-    #pos_n_com = sample(rng,pos_n_com,Int(round(length(pos_n_com))),replace=false)
-    #pos_y = findall(x-> humans[x].age<18, 1:length(humans))
-    #pos_y = sample(pos_y,Int(round(p.young_comp*length(pos_y))),replace=false)
-
-    #pos1 = [pos_eld;shuffle(rng,[pos_old;pos_old_c;pos_young_c])]
-    #pos2 = shuffle([pos_n_com;pos_y])
-    #pos2 = [pos_old;pos_young;pos_kid]
-
-    #pos1 = shuffle(rng,[pos_hcw;pos_eld])
-    #pos_11 = pos1[1:Int(floor(length(pos1)/2))]
-    #pos_12 = pos1[Int(floor(length(pos1)/2)+1):end]
-
     pos2 = shuffle(rng,[pos_eld;pos_old_c;pos_young_c])
 
     ll = length([pos_young_1;pos_young_2])
@@ -413,23 +421,6 @@ function vac_selection(sim::Int64)
     wv = Weights([wv1;wv2])
 
     pos3 = sample(rng,[pos_young_1;pos_young_2],wv,ll,replace = false)
-
-   # pos_21 = pos2[1:Int(floor(length(pos2)/2))]
-   # pos_22 = pos2[Int(floor(length(pos2)/2)+1):end]
-
-    #pos_o1 = pos_old[1:Int(floor(length(pos_old)/2))]
-    #pos_o2 = pos_old[Int(floor(length(pos_old)/2)+1):end]
-
-    #pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
-    #pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
-
-    #pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
-    #pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
-
-    #pos_k1 = pos_kid[1:Int(floor(length(pos_kid)/2))]
-    #pos_k2 = pos_kid[Int(floor(length(pos_kid)/2)+1):end]
-  
-    #v = [pos_11;shuffle(rng,[pos_12;pos_21]);shuffle(rng,[pos_22;pos_o1]);shuffle(rng,[pos_o2;pos_y1]);pos_y2;pos_kid]#shuffle(rng,[pos_y2;pos_k1]);pos_k2]
     v = [pos_hcw;pos2;pos_old;pos3;pos_kid]#shuffle(rng,[pos_y2;pos_k1]);pos_k2]
 
     return v
@@ -524,8 +515,8 @@ function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2
     for i = (n_1_dose[t]+1):1:n_1_dose[t+1]
         x = humans[vac_ind[i]]
         if x.vac_status == 0
-            if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3)
-                pos = findall(k-> !(humans[vac_ind[k]].health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3)) && k>n_1_dose[t+1],1:length(vac_ind))
+            if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3,MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
+                pos = findall(k-> !(humans[vac_ind[k]].health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3,MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)) && k>n_1_dose[t+1],1:length(vac_ind))
                 if length(pos) > 0
                     r = rand(pos)
                     aux = vac_ind[i]
@@ -548,7 +539,7 @@ function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2
     for i = (n_2_dose[t]+1):1:n_2_dose[t+1]
         x = humans[vac_ind[i]]
 
-        if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3)
+        if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3, MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
             
             if t != (length(n_2_dose)-1)
                 vac_ind = [vac_ind; x.idx]
@@ -563,20 +554,15 @@ function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2
                 age_ind = findfirst(k->k>=x.age,ages_drop)
                 if rand() < (1-drop_out_rate[age_ind])
                     x = humans[vac_ind[i]]
-                    #red_com = p.vac_com_dec_min+rand()*(p.vac_com_dec_max-p.vac_com_dec_min)
-                    #x.vac_ef = ((1-red_com)^x.comorbidity)*(p.vac_efficacy/2.0)+(p.vac_efficacy/2.0)
                     x.days_vac = 0
                     x.vac_status = 2
                     x.index_day = 1
                    # x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
                 end
             else
-                #red_com = p.vac_com_dec_min+rand()*(p.vac_com_dec_max-p.vac_com_dec_min)
-                #x.vac_ef = ((1-red_com)^x.comorbidity)*(p.vac_efficacy/2.0)+(p.vac_efficacy/2.0)
                 x.days_vac = 0
                 x.vac_status = 2
                 x.index_day = 1
-               # x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
                
             end
         end
@@ -620,7 +606,6 @@ function vac_update(x::Human)
             aux2 = ((1- x.vac_red)^comm)*p.vac_efficacy_symp[x.vac_status][1] #0.95
             aux3 = ((1- x.vac_red)^comm)*p.vac_efficacy_sev[x.vac_status][1] #0.95
         
-           #p.vac_com_dec_min+rand()*(p.vac_com_dec_max-p.vac_com_dec_min)
             x.vac_ef_inf = aux1
             x.vac_ef_symp = aux2
             x.vac_ef_sev = aux3
@@ -793,7 +778,7 @@ function _get_column_prevalence(hmatrix, hcol)
 end
 
 function _count_infectors()     
-    pre_ctr = asymp_ctr = mild_ctr = inf_ctr = pre_ctr2 = asymp_ctr2 = mild_ctr2 = inf_ctr2 = pre_ctr3 = asymp_ctr3 = mild_ctr3 = inf_ctr3 = 0
+    pre_ctr = asymp_ctr = mild_ctr = inf_ctr = pre_ctr2 = asymp_ctr2 = mild_ctr2 = inf_ctr2 = pre_ctr3 = asymp_ctr3 = mild_ctr3 = inf_ctr3 = pre_ctr4 = asymp_ctr4 = mild_ctr4 = inf_ctr4 = 0
     for x in humans 
         if x.health != SUS ## meaning they got sick at some point
             if x.sickfrom == PRE
@@ -812,6 +797,14 @@ function _count_infectors()
                 mild_ctr2 += 1 
             elseif x.sickfrom == INF2 || x.sickfrom == IISO2 
                 inf_ctr2 += 1 
+            elseif x.sickfrom == PRE4
+                pre_ctr4 += 1
+            elseif x.sickfrom == ASYMP4
+                asymp_ctr4 += 1
+            elseif x.sickfrom == MILD4 || x.sickfrom == MISO4 
+                mild_ctr4 += 1 
+            elseif x.sickfrom == INF4 || x.sickfrom == IISO4 
+                inf_ctr4 += 1 
             elseif x.sickfrom == PRE3
                 pre_ctr3 += 1
             elseif x.sickfrom == ASYMP3
@@ -1003,6 +996,28 @@ function insert_infected(health, num, ag,strain)
                 else 
                     error("can not insert human of health $(health)")
                 end
+            elseif x.strain == 4
+                if health == PRE
+                    x.swap =  PRE4 
+                    move_to_pre(x) ## the swap may be asymp, mild, or severe, but we can force severe in the time_update function
+                elseif health == LAT
+                    x.swap = LAT4 
+                    move_to_latent(x)
+                elseif health == MILD
+                    x.swap =  MILD4 
+                    move_to_mild(x)
+                elseif health == INF
+                    x.swap = INF4
+                    move_to_infsimple(x)
+                elseif health == ASYMP
+                    x.swap = ASYMP4 
+                    move_to_asymp(x)
+                elseif health == REC 
+                    x.swap = REC4
+                    move_to_recovered(x)
+                else 
+                    error("can not insert human of health $(health)")
+                end
             else
                 error("no strain")
             end
@@ -1019,6 +1034,7 @@ function time_update()
     lat=0; pre=0; asymp=0; mild=0; miso=0; inf=0; infiso=0; hos=0; icu=0; rec=0; ded=0;
     lat2=0; pre2=0; asymp2=0; mild2=0; miso2=0; inf2=0; infiso2=0; hos2=0; icu2=0; rec2=0; ded2=0;
     lat3=0; pre3=0; asymp3=0; mild3=0; miso3=0; inf3=0; infiso3=0; hos3=0; icu3=0; rec3=0; ded3=0;
+    lat4=0; pre4=0; asymp4=0; mild4=0; miso4=0; inf4=0; infiso4=0; hos4=0; icu4=0; rec4=0; ded4=0;
     for x in humans 
         x.tis += 1 
         x.doi += 1 # increase day of infection. variable is garbage until person is latent
@@ -1057,6 +1073,17 @@ function time_update()
                 :ICU3  => begin move_to_hospicu(x); icu3 += 1; end
                 :REC3  => begin move_to_recovered(x); rec3 += 1; end
                 :DED3  => begin move_to_dead(x); ded3 += 1; end
+                :LAT4  => begin move_to_latent(x); lat4 += 1; end
+                :PRE4  => begin move_to_pre(x); pre4 += 1; end
+                :ASYMP4 => begin move_to_asymp(x); asymp4 += 1; end
+                :MILD4 => begin move_to_mild(x); mild4 += 1; end
+                :MISO4 => begin move_to_miso(x); miso4 += 1; end
+                :INF4  => begin move_to_inf(x); inf4 +=1; end    
+                :IISO4 => begin move_to_iiso(x); infiso4 += 1; end
+                :HOS4  => begin move_to_hospicu(x); hos4 += 1; end 
+                :ICU4  => begin move_to_hospicu(x); icu4 += 1; end
+                :REC4  => begin move_to_recovered(x); rec4 += 1; end
+                :DED4  => begin move_to_dead(x); ded4 += 1; end
                 _    => error("swap expired, but no swap set.")
             end
         end
@@ -1109,17 +1136,12 @@ function move_to_latent(x::Human)
     x.doi = 0 ## day of infection is reset when person becomes latent
     x.tis = 0   # reset time in state 
     x.exp = x.dur[1] # get the latent period
-    # the swap to asymptomatic is based on age group.
-    # ask seyed for the references
-    #asymp_pcts = (0.25, 0.25, 0.14, 0.07, 0.07)
-    #symp_pcts = map(y->1-y,asymp_pcts) 
-    #symp_pcts = (0.75, 0.75, 0.86, 0.93, 0.93) 
    
     #0-18 31 19 - 59 29 60+ 18 going to asymp
     symp_pcts = [0.7, 0.623, 0.672, 0.672, 0.812, 0.812] #[0.3 0.377 0.328 0.328 0.188 0.188]
     age_thres = [4, 19, 49, 64, 79, 999]
     g = findfirst(y-> y >= x.age, age_thres)
-    auxiliar = x.recovered ? (1-p.vac_efficacy_symp[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    auxiliar = x.recovered ? (1-p.vac_efficacy_symp[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red2)^(Int(x.strain==2))*(1-p.strain_ef_red4)^(Int(x.strain==4)))
     if rand() < (symp_pcts[g])*auxiliar
         if x.strain == 1
             x.swap = PRE
@@ -1127,6 +1149,8 @@ function move_to_latent(x::Human)
             x.swap = PRE2
         elseif x.strain == 3
             x.swap = PRE3
+        elseif x.strain == 4
+            x.swap = PRE4
         else
             error("No strain in move to lat")
         end
@@ -1138,6 +1162,8 @@ function move_to_latent(x::Human)
             x.swap = ASYMP2
         elseif x.strain == 3
             x.swap = ASYMP3
+        elseif x.strain == 4
+            x.swap = ASYMP4
         else
             error("No strain in move to lat")
         end
@@ -1167,6 +1193,8 @@ function move_to_asymp(x::Human)
         x.swap = REC2
     elseif x.strain == 3
         x.swap = REC3
+    elseif x.strain == 4
+        x.swap = REC4
     else
         error("No strain in move to asymp")
     end
@@ -1182,7 +1210,7 @@ function move_to_pre(x::Human)
     x.health = x.swap
     x.tis = 0   # reset time in state 
     x.exp = x.dur[3] # get the presymptomatic period
-    auxiliar = x.recovered ? (1-p.vac_efficacy_sev[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    auxiliar = x.recovered ? (1-p.vac_efficacy_sev[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red2)^(Int(x.strain==2))*(1-p.strain_ef_red4)^(Int(x.strain==4)))
     if rand() < (1-θ[x.ag])*auxiliar
         if x.strain == 1
             x.swap = INF
@@ -1190,6 +1218,8 @@ function move_to_pre(x::Human)
             x.swap = INF2
         elseif x.strain == 3
             x.swap = INF3
+        elseif x.strain == 4
+            x.swap = INF4
         else
             error("No strain in move to pre")
         end
@@ -1201,6 +1231,8 @@ function move_to_pre(x::Human)
             x.swap = MILD2
         elseif x.strain == 3
             x.swap = MILD3
+        elseif x.strain == 4
+            x.swap = MILD4
         else
             error("No strain in move to pre")
         end
@@ -1223,6 +1255,8 @@ function move_to_mild(x::Human)
         x.swap = REC2
     elseif x.strain == 3
         x.swap = REC3
+    elseif x.strain == 4
+        x.swap = REC4
     else
         error("No strain in move to mild")
     end
@@ -1241,6 +1275,8 @@ function move_to_mild(x::Human)
             x.swap = MISO2
         elseif x.strain == 3
             x.swap = MISO3
+        elseif x.strain == 4
+            x.swap = MISO4
         else
             error("No strain in move to mild")
         end
@@ -1259,6 +1295,8 @@ function move_to_miso(x::Human)
         x.swap = REC2
     elseif x.strain == 3
         x.swap = REC3 
+    elseif x.strain == 4
+        x.swap = REC4
     else
         error("No strain in move to miso")
     end
@@ -1281,6 +1319,8 @@ function move_to_infsimple(x::Human)
         x.swap = REC2
     elseif x.strain == 3
         x.swap = REC3 
+    elseif x.strain == 4
+        x.swap = REC4
     else
         error("No strain in move to miso")
     end
@@ -1323,6 +1363,8 @@ function move_to_inf(x::Human)
                 x.swap = ICU2
             elseif x.strain == 3
                 x.swap = ICU3
+            elseif x.strain == 4
+                x.swap = ICU4
             else
                 error("No strain in move to inf")
             end
@@ -1334,6 +1376,8 @@ function move_to_inf(x::Human)
                 x.swap = HOS2
             elseif x.strain == 3
                 x.swap = HOS3
+            elseif x.strain == 4
+                x.swap = HOS4
             else
                 error("No strain in move to inf")
             end
@@ -1351,6 +1395,8 @@ function move_to_inf(x::Human)
                 x.swap = IISO2
             elseif x.strain == 3
                 x.swap = IISO3
+            elseif x.strain == 4
+                x.swap = IISO4
             else
                 error("No strain in move to inf")
             end    
@@ -1364,6 +1410,8 @@ function move_to_inf(x::Human)
                     x.swap = DED2
                 elseif x.strain == 3
                     x.swap = DED3
+                elseif x.strain == 4
+                    x.swap = DED4
                 else
                     error("No strain in move to inf")
                 end 
@@ -1374,7 +1422,9 @@ function move_to_inf(x::Human)
                 elseif x.strain == 2
                     x.swap = REC2
                 elseif x.strain == 3
-                    x.swap = REC3 
+                    x.swap = REC3
+                elseif x.strain == 4
+                    x.swap = REC4
                 else
                     error("No strain in move to miso")
                 end
@@ -1402,6 +1452,8 @@ function move_to_iiso(x::Human)
             x.swap = DED2
         elseif x.strain == 3
             x.swap = DED3
+        elseif x.strain == 4
+            x.swap = DED4
         else
             error("No strain in move to inf")
         end 
@@ -1413,6 +1465,8 @@ function move_to_iiso(x::Human)
             x.swap = REC2
         elseif x.strain == 3
             x.swap = REC3 
+        elseif x.strain == 4
+            x.swap = REC4
         else
             error("No strain in move to miso")
         end
@@ -1430,7 +1484,7 @@ function move_to_hospicu(x::Human)
     g = findfirst(y-> y >= x.age,age_thres) =#
     aux = [0:4, 5:19, 20:44, 45:54, 55:64, 65:74, 75:84, 85:99]
    
-    if x.strain == 1 || x.strain == 3
+    if x.strain == 1 || x.strain == 3 || x.strain == 4
 
         mh = [0.001, 0.001, 0.0015, 0.0065, 0.01, 0.02, 0.0735, 0.38]
         mc = [0.002,0.002,0.0022, 0.008, 0.022, 0.04, 0.08, 0.4]
@@ -1458,7 +1512,7 @@ function move_to_hospicu(x::Human)
     x.tis = 0
     _set_isolation(x, true) # do not set the isovia property here.  
 
-    if swaphealth == HOS || swaphealth == HOS2 || swaphealth == HOS3
+    if swaphealth == HOS || swaphealth == HOS2 || swaphealth == HOS3 || swaphealth == HOS4
         x.hospicu = 1 
         if rand() < mh[gg] ## person will die in the hospital 
             x.exp = muH 
@@ -1468,6 +1522,8 @@ function move_to_hospicu(x::Human)
                 x.swap = DED2
             elseif x.strain == 3
                 x.swap = DED3
+            elseif x.strain == 4
+                x.swap = DED4
             else
                 error("No strain in move to inf")
             end 
@@ -1479,13 +1535,15 @@ function move_to_hospicu(x::Human)
             elseif x.strain == 2
                 x.swap = REC2
             elseif x.strain == 3
-                x.swap = REC3 
+                x.swap = REC3
+            elseif x.strain == 4
+                x.swap = REC4
             else
                 error("No strain in move to miso")
             end
             #x.swap = x.strain == 1 ? REC : REC2
         end    
-    elseif swaphealth == ICU || swaphealth == ICU2 || swaphealth == ICU3
+    elseif swaphealth == ICU || swaphealth == ICU2 || swaphealth == ICU3 || swaphealth == ICU4
         x.hospicu = 2 
                 
         if rand() < mc[gg] ## person will die in the ICU 
@@ -1496,6 +1554,8 @@ function move_to_hospicu(x::Human)
                 x.swap = DED2
             elseif x.strain == 3
                 x.swap = DED3
+            elseif x.strain == 4
+                x.swap = DED4
             else
                 error("No strain in move to inf")
             end 
@@ -1508,6 +1568,8 @@ function move_to_hospicu(x::Human)
                 x.swap = REC2
             elseif x.strain == 3
                 x.swap = REC3 
+            elseif x.strain == 4
+                x.swap = REC4
             else
                 error("No strain in move to miso")
             end
@@ -1585,6 +1647,18 @@ end
 
     elseif xhealth == PRE3
         bf = bf*p.third_strain_trans
+
+    elseif xhealth == ASYMP4
+        bf = bf*p.frelasymp*p.fourth_strain_trans #0.11
+
+    elseif xhealth == MILD4 || xhealth == MISO4
+        bf = bf * 0.44*p.fourth_strain_trans
+
+    elseif xhealth == INF4 || xhealth == IISO4
+        bf = bf * 0.89*p.fourth_strain_trans
+
+    elseif xhealth == PRE4
+        bf = bf*p.fourth_strain_trans
     end
     return bf
 end
@@ -1620,7 +1694,7 @@ function dyntrans(sys_time, grps,sim)
     pos = shuffle(1:length(humans))
     # go through every infectious person
     for x in humans[pos]        
-        if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2, PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3)
+        if x.health in (PRE, ASYMP, MILD, MISO, INF, IISO,PRE2, ASYMP2, MILD2, MISO2, INF2, IISO2, PRE3, ASYMP3, MILD3, MISO3, INF3, IISO3, PRE4, ASYMP4, MILD4, MISO4, INF4, IISO4)
             
             xhealth = x.health
             cnts = x.nextday_meetcnt
@@ -1642,13 +1716,16 @@ function dyntrans(sys_time, grps,sim)
                     adj_beta = 0 # adjusted beta value by strain and vaccine efficacy
                     if y.health == SUS && y.swap == UNDEF                  
                         if (x.strain == 1 || x.strain == 2) 
-                            adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red)^(x.strain-1))
+                            adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red2)^(x.strain-1))
                         elseif x.strain == 3
                             adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3)) ###(1-0.0*(1-0.8)) = (1-0.0) = 1.0*beta
+                        elseif x.strain == 4
+                            adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red4)) ###(1-0.0*(1-0.8)) = (1-0.0) = 1.0*beta
+                        
                         else 
                             error("error -- strain set")
                         end
-                    elseif (x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF)
+                    elseif (x.strain in (3,4) && y.health in (REC, REC2) && y.swap == UNDEF)
                         adj_beta = beta*(p.reduction_recovered) #0.21
                     end
 
@@ -1664,6 +1741,8 @@ function dyntrans(sys_time, grps,sim)
                             y.swap = LAT2
                         elseif x.strain == 3 
                             y.swap = LAT3 
+                        elseif x.strain == 4
+                            y.swap = LAT4
                         else
                             error("No strain in move to transmission")
                         end 
@@ -1677,15 +1756,6 @@ function dyntrans(sys_time, grps,sim)
 end
 export dyntrans
 
-### old contact matrix
-# function contact_matrix()
-#     CM = Array{Array{Float64, 1}, 1}(undef, 4)
-#     CM[1]=[0.5712, 0.3214, 0.0722, 0.0353]
-#     CM[2]=[0.1830, 0.6253, 0.1423, 0.0494]
-#     CM[3]=[0.1336, 0.4867, 0.2723, 0.1074]    
-#     CM[4]=[0.1290, 0.4071, 0.2193, 0.2446]
-#     return CM
-# end
 
 function contact_matrix()
     # regular contacts, just with 5 age groups. 
@@ -1758,26 +1828,6 @@ function negative_binomials_shelter(ag,mult)
     end
     return nbinoms[ag]   
 end
-#const nbs_shelter = negative_binomials_shelter()
-#= 
-function negative_binomials_shelter_r() 
-    ## the means/sd here are calculated using _calc_avgag
-    means = [2.86, 4.7, 3.86, 3.15, 2.24]
-    sd = [2.14, 3.28, 2.94, 2.66, 1.95]
-    means = means*p.contact_change_rate
-    sd = sd*p.contact_change_rate
-    totalbraks = length(means)
-    nbinoms = Vector{NegativeBinomial{Float64}}(undef, totalbraks)
-    for i = 1:totalbraks
-        p = 1 - (sd[i]^2-means[i])/(sd[i]^2)
-        r = means[i]^2/(sd[i]^2-means[i])
-        nbinoms[i] =  NegativeBinomial(r, p)
-    end
-    return nbinoms   
-end
-const nbs_shelter_r = negative_binomials_shelter_r()
-export negative_binomials_shelter_r,  nbs_shelter_r =#
-
 ## internal functions to do intermediate calculations
 function _calc_avgag(lb, hb) 
     ## internal function to calculate the mean/sd of the negative binomials
