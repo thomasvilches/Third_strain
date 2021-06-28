@@ -98,7 +98,7 @@ end
 
     red_risk_perc::Float64 = 1.0 #relative isolation in vaccinated individuals
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
-    fd_1::Array{Int64,1} = [0;68;132;164;275;416;386;415;511;510;527;644;725;741;815;912;960;961;842;600]
+    fd_1::Array{Int64,1} = [0;68;132;164;275;416;386;415;511;510;527;644;725;741;815;912;960;961;842;600;600;400]
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
     sec_dose_delay::Int64 = vac_period #delay in second dose
@@ -139,8 +139,8 @@ end
     how_long::Int64 = 1## used to calibrate the model
     how_much::Float64 = 0.0## used to calibrate the model
     rate_increase::Float64 = how_much/how_long## used to calibrate the model
-    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->127+y,0:7);map(y->193+y,0:7)]#map(y->time_change+y,0:(how_long-1))]#]#map(y->time_change+y,0:(how_long-1))]#;map(y->time_change+y,0:(how_long-1))]#;map(y->42+y,0:4);map(y->72+y,0:9);map(y->98+y,0:9);map(y->113+y,0:6);map(y->158+y,0:3)]#;map(y->time_change+y,0:(how_long-1))]#[1;map(y->48+y,0:4);map(y->74+y,0:8);map(y->114+y,0:11);map(y->159+y,0:9);map(y->time_change+y,0:(how_long-1))]#map(y->time_change+y,0:(how_long-1))]#;map(y->88+y,0:19);map(y->136+y,0:4);
-    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.175/8)*y,1:8);map(y->0.879+(0.05/8)*y,1:8)]##map(y->0.864+rate_increase*y,1:how_long)]#;map(y->0.864+rate_increase*y,1:how_long)]#;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.013)*y,1:10);map(y->0.97+(0.011)*y,1:10);map(y->1.08-(0.19/7)*y,1:7);map(y->0.89+0.01*y,1:4)]#;map(y->0.89+rate_increase*y,1:how_long)]#[1.0;map(y->1.0+0.02*y,1:5);map(y->1.1-(0.08/9)*y,1:9);map(y->1.02-0.01*y,1:12);map(y->0.9+0.0028*y,1:10);map(y->0.9+rate_increase*y,1:how_long)]#;map(y->0.9+rate_increase*y,1:how_long)]#;,map(y->1.18-0.018*y,1:20);map(y->0.82+0.036*y,1:5);map(y->1.0+rate_inc*y,1:n_days_inc)]
+    time_change_contact::Array{Int64,1} =  [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->127+y,0:9);167;map(y->197+y,0:3);map(y->216+y,0:30)]
+    change_rate_values::Array{Float64,1} =  [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.019)*y,1:10);0.874;map(y->0.874+(0.01)*y,1:4);map(y->0.904-(0.15/31)*y,1:31)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
