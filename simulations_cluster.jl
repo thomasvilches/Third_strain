@@ -208,50 +208,18 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     return RF
 end
 
-function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate = false,vac = "none",red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
+function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
     
-    
-    if vac == "pfizer"
-        sdd = 21
-        pd = [[14],[0;7]]
-        inf=[[0.46],[0.6;0.92]]
-        symp=[[0.57],[0.66;0.94]]
-        sev= [[0.62],[0.80;0.92]]
-        ag_v = 16
-    elseif vac == "moderna"
-        sdd = 28
-        pd=[[14],[0;14]]
-        inf=[[0.61],[0.61;0.935]]
-        symp=[[0.921],[0.921;0.941]]
-        sev=[[0.921],[0.921;1.0]]
-        ag_v = 18
-    elseif vac == "vac1"
-        sdd = 28
-        pd=[[14],[0]]
-        inf=[[0.50],[0.7]]
-        symp=[[0.75],[0.8]]
-        sev=[[0.75],[0.8]]
-        ag_v = 18
-    else
-        sdd = 21
-        pd=[[14],[0;14]]
-        inf=[[0.61],[0.61;0.935]]
-        symp=[[0.921],[0.921;0.941]]
-        sev=[[0.921],[0.921;1.0]]
-        ag_v = 18
-    end
-
-    
+       
     #b = bd[h_i]
     #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = $vaccinate,vac_efficacy_inf = $inf,
-    vac_efficacy_symp=$symp, vac_efficacy_sev = $sev,
+    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = true,
     herd = $(h_i),start_several_inf=true,initialinf3=$ic,
-    ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
-    third_strain_trans=$strain2_trans, strain_ef_red3 = $red,
-    min_age_vac=$ag_v, time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
+    ins_sec_strain = true,third_strain_trans=$strain3_trans,
+    fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
+    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
 
-    folder = create_folder(ip,vac)
+    folder = create_folder(ip,"pfizer")
 
     #println("$v_e $(ip.vaccine_ef)")
     run(ip,nsims,folder)
@@ -259,55 +227,26 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate
 end
 
 
-function run_param_scen_cal(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,vaccinate = false,vac = "none",red = 0.0,index = 0,when_= 999,hl = 1,hm = 0.0,nsims=500)
+function run_param_scen_cal(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,hl=1,hm=0.0,wt=999,nsims=500)
     
-    
-    if vac == "pfizer"
-        sdd = 21
-        pd = [[14],[0;7]]
-        inf=[[0.46],[0.6;0.92]]
-        symp=[[0.57],[0.66;0.94]]
-        sev= [[0.62],[0.80;0.92]]
-        ag_v = 16
-    elseif vac == "moderna"
-        sdd = 28
-        pd=[[14],[0;14]]
-        inf=[[0.61],[0.61;0.935]]
-        symp=[[0.921],[0.921;0.941]]
-        sev=[[0.921],[0.921;1.0]]
-        ag_v = 18
-    elseif vac == "vac1"
-        sdd = 28
-        pd=[[14],[0]]
-        inf=[[0.50],[0.7]]
-        symp=[[0.75],[0.8]]
-        sev=[[0.75],[0.8]]
-        ag_v = 18
-    else
-        sdd = 21
-        pd=[[14],[0;14]]
-        inf=[[0.61],[0.61;0.935]]
-        symp=[[0.921],[0.921;0.941]]
-        sev=[[0.921],[0.921;1.0]]
-        ag_v = 18
-    end
-
-    
+       
     #b = bd[h_i]
     #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = $vaccinate,vac_efficacy_inf = $inf,
-    vac_efficacy_symp=$symp, vac_efficacy_sev = $sev,
+    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = true,
     herd = $(h_i),start_several_inf=true,initialinf3=$ic,
-    ins_sec_strain = true,sec_dose_delay = $sdd,vac_period = $sdd,days_to_protection=$pd,
-    third_strain_trans=$strain2_trans, strain_ef_red3 = $red,
-    min_age_vac=$ag_v, time_back_to_normal = 307,how_long = $hl,how_much = $hm,time_change = $when_,status_relax = 1, relax_after = 14,file_index = $index)
+    ins_sec_strain = true,third_strain_trans=$strain3_trans,
+    fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
+    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
+    how_long = $hl,how_much = $hm, time_change=$wt)
 
-    folder = create_folder(ip,vac)
+    folder = create_folder(ip,"pfizer")
 
     #println("$v_e $(ip.vaccine_ef)")
     run(ip,nsims,folder)
    
 end
+
+
 
 ## now, running vaccine and herd immunity, focusing and not focusing in comorbidity, first  argument turns off vac
 function run_calibration(beta = 0.0345,herd_im_v = 0,fs = 0.0,insert_sec=false,strain2_trans=1.0,nsims=1000)
