@@ -200,7 +200,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     main_folder = "/data/thomas-covid/third_strain_revision"
     #main_folder = "."
    
-    RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.third_strain_trans)_$(ip.strain_ef_red3)_$(ip.file_index)") ##  
+    RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.fourth_strain_trans)_$(ip.strain_ef_red3)_$(ip.file_index)") ##  
    
     if !Base.Filesystem.isdir(RF)
         Base.Filesystem.mkpath(RF)
