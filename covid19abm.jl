@@ -597,7 +597,7 @@ function vac_update(x::Human)
             x.index_day = min(length(p.days_to_protection[x.vac_status]),x.index_day+1)
 
         elseif x.days_vac == p.days_to_protection[x.vac_status][x.index_day]#7
-            x.protected = 1
+            x.protected = x.index_day
             x.index_day = min(length(p.days_to_protection[x.vac_status]),x.index_day+1)
         end
         if !x.relaxed
