@@ -1,6 +1,6 @@
 module covid19abm
 using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
-
+include("matrices_code.jl")
 @enum HEALTH SUS LAT PRE ASYMP MILD MISO INF IISO HOS ICU REC DED  LAT2 PRE2 ASYMP2 MILD2 MISO2 INF2 IISO2 HOS2 ICU2 REC2 DED2 LAT3 PRE3 ASYMP3 MILD3 MISO3 INF3 IISO3 HOS3 ICU3 REC3 DED3 LAT4 PRE4 ASYMP4 MILD4 MISO4 INF4 IISO4 HOS4 ICU4 REC4 DED4 UNDEF 
 
 Base.@kwdef mutable struct Human
@@ -26,7 +26,6 @@ Base.@kwdef mutable struct Human
     tracedxp::Int16 = 0 ## the trace is killed after tracedxp amount of days
     comorbidity::Int8 = 0 ##does the individual has any comorbidity?
     vac_status::Int8 = 0 ##
-    protected::Int64 = 0
 
     got_inf::Bool = false
     herd_im::Bool = false
@@ -40,6 +39,9 @@ Base.@kwdef mutable struct Human
     index_day::Int64 = 1
     relaxed::Bool = false
     recovered::Bool = false
+    vaccine::Symbol = :none
+    vaccine_n::Int16 = 0
+    protected::Int64 = 0
 end
 
 ## default system parameters
@@ -84,25 +86,18 @@ end
     old_adults::Float64 = 0.95
     young_adults::Float64 = 0.8
     kid_comp::Float64 = 0.8
-    day_insert_kids::Int64 = 255
     #comor_comp::Float64 = 0.7 #prop comorbidade tomam
 
-    vac_period::Int64 = 21 #period between two doses (minimum)
+    vac_period::Array{Int64,1} = [21;28]
     n_comor_comp::Float64 = 1.0
     min_age_vac::Int64 = 16
     
     vaccinating::Bool = true #vaccinating?
-    single_dose::Bool = false #unique dose
     drop_rate::Float64 = 0.0 #probability of not getting second dose
     fixed_cov::Float64 = 0.4 #coverage of population
-
+    pfizer_proportion::Float64 = 1.0
     red_risk_perc::Float64 = 1.0 #relative isolation in vaccinated individuals
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
-    fd_1::Array{Int64,1} = [0;68;132;164;275;416;386;415;511;510;527;644;725;741;815;912;960;961;842;600;600;400]
-    fd_2::Int64 = 0 #first-dose doses when second one is given
-    sd1::Array{Int64,1} = fd_1 #second-dose doses
-    sec_dose_delay::Int64 = vac_period #delay in second dose
-    days_change_vac_rate::Array{Int64,1} = [103;map(x->103+7*x,1:(length(fd_1)-2))] #when the vaccination rate is changed
     extra_dose::Bool = false #if it is turned on, extradoses are given to general population
     extra_dose_n::Int64 = 0 #how many
     extra_dose_day::Int64 = 999 #when extra doses are implemented
@@ -127,8 +122,9 @@ end
     strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
     strain_ef_red3::Float64 = 0.8 #reduction in efficacy against third strain
     strain_ef_red4::Float64 = 0.8 #reduction in efficacy against third strain
-    mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
+    mortality_inc::Float64 = 1.64 #The mortality increase when infected by strain 2
 
+    #=------------ Vaccine Efficacy ----------------------------=#
     days_to_protection::Array{Array{Int64,1},1} = [[14],[0;7]]
     vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]]] #### 50:5:80
     vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]]] #### 50:5:80
@@ -139,8 +135,8 @@ end
     how_long::Int64 = 1## used to calibrate the model
     how_much::Float64 = 0.0## used to calibrate the model
     rate_increase::Float64 = how_much/how_long## used to calibrate the model
-    time_change_contact::Array{Int64,1} =  [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->127+y,0:9);167;map(y->197+y,0:3);map(y->216+y,0:30)]
-    change_rate_values::Array{Float64,1} =  [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.019)*y,1:10);0.874;map(y->0.874+(0.01)*y,1:4);map(y->0.904-(0.15/31)*y,1:31)]
+    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->125+y,0:12)]
+    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.21/13)*y,1:13)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
@@ -149,6 +145,8 @@ end
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
+    priority::Bool = true
+    scenario::Symbol = :statuscuo
     time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
     ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
@@ -171,6 +169,7 @@ Base.show(io::IO, ::MIME"text/plain", z::Human) = dump(z)
 const humans = Array{Human}(undef, 0) 
 const p = ModelParameters()  ## setup default parameters
 const agebraks = @SVector [0:4, 5:19, 20:49, 50:64, 65:99]
+const agebraks_vac = @SVector [12:15, 16:17, 18:24, 25:39, 40:49, 50:64, 65:74, 75:99]
 const BETAS = Array{Float64, 1}(undef, 0) ## to hold betas (whether fixed or seasonal), array will get resized
 const ct_data = ct_data_collect()
 export ModelParameters, HEALTH, Human, humans, BETAS
@@ -199,13 +198,6 @@ function runsim(simnum, ip::ModelParameters)
     insertcols!(ag3, 1, :sim => simnum); insertcols!(ag4, 1, :sim => simnum); insertcols!(ag5, 1, :sim => simnum);
     insertcols!(ag6, 1, :sim => simnum);
 
-     ##getting info about vac, comorbidity306
-   # vac_idx = [x.vac_status for x in humans]
-   #vac_ef_i = [x.vac_ef for x in humans]
-   # comorb_idx = [x.comorbidity for x in humans]
-   # ageg = [x.ag for x = humans ]
-
-    #n_vac = sum(vac_idx)
     
     R01 = zeros(Float64,size(hh1,1))
 
@@ -285,30 +277,15 @@ function main(ip::ModelParameters,sim::Int64)
     # split population in agegroups 
     grps = get_ag_dist()
     count_change::Int64 = 1
-    # start the time loop
+    
     time_vac::Int64 = 1
+    time_pos::Int64 = 0
     if p.vaccinating
-        vac_ind2 = vac_selection(sim)
-        vac_ind = Array{Int64,1}(undef,length(vac_ind2))
-        for i = 1:length(vac_ind2)
-            vac_ind[i] = vac_ind2[i]
-        end
-        v1,v2 = vac_index_new(length(vac_ind))
-
-        aux = v1[p.day_insert_kids+2]
-
-        if aux < 0
-            #aux = findfirst(y-> y<0, v1)-1
-            aux = maximum(v1)
-        end
-
-        rng = MersenneTwister(485*sim)
-        vac_ind = [vac_ind[1:aux];shuffle(rng,vac_ind[aux+1:end])]
+        vac_ind = vac_selection(sim)
     else
         time_vac = 9999 #this guarantees that no one will be vaccinated
-        v1 = []
     end
-        
+    # start the time loop
     for st = 1:p.modeltime
         if p.ins_sec_strain && st == p.time_sec_strain ##insert second strain
             insert_infected(PRE, p.initialinf2, 4, 2)[1]
@@ -339,17 +316,12 @@ function main(ip::ModelParameters,sim::Int64)
             #setfield!(p, :contact_change_rate, 1.0)
         end
 
-        if time_vac <= (length(v1)-1) ## daily vaccination
-            #if st%7 > 0 #we are vaccinating everyday
-                vac_ind2 = vac_time!(vac_ind,time_vac,v1,v2)
-                #vac_ind = [vac_ind vac_ind2]
-                resize!(vac_ind, length(vac_ind2))
-                for i = 1:length(vac_ind2)
-                    vac_ind[i] = vac_ind2[i]
-                end
-                time_vac += 1
-            #end
+        if time_pos < length(vaccination_days) && time_vac == vaccination_days[time_pos+1]
+            time_pos += 1
         end
+        time_vac += 1
+        time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1)
+       
        
         _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
         dyntrans(st, grps,sim)
@@ -372,211 +344,98 @@ function main(ip::ModelParameters,sim::Int64)
 end
 export main
 
-
 function vac_selection(sim::Int64)
     
-    rng = MersenneTwister(123*sim)
 
-    pos = findall(x-> humans[x].age>=20 && humans[x].age<65,1:length(humans))
-    pos_hcw = sample(rng,pos,Int(round(p.hcw_vac_comp*p.hcw_prop*p.popsize)),replace = false)
-    
-    for i in pos_hcw
-        humans[i].hcw = true
+    if p.priority
+        aux_1 = map(k-> findall(y-> y.age in k && y.comorbidity == 1,humans),agebraks_vac)
+        aux_2 = map(k-> findall(y-> y.age in k && y.comorbidity == 0,humans),agebraks_vac)
+
+        v = map(x-> [aux_1[x];aux_2[x]],1:length(aux_1))
+    else
+        v = map(k-> findall(y-> y.age in k,humans),agebraks_vac)
+
     end
+    
 
-    #pos_com = findall(x->humans[x].comorbidity == 1 && !(x in pos_hcw) && humans[x].age<65 && humans[x].age>=16, 1:length(humans))
-    #pos_com = sample(pos_com,Int(round(p.comor_comp*length(pos_com))),replace=false)
-
-
-    pos_eld = findall(x-> humans[x].age>=75, 1:length(humans))
-    pos_eld = sample(rng,pos_eld,Int(round(p.eld_comp*length(pos_eld))),replace=false)
-
-    pos_old = findall(x-> humans[x].age>=65 && humans[x].age<75 && humans[x].comorbidity == 0 && !humans[x].hcw, 1:length(humans))
-    pos_old = sample(rng,pos_old,Int(round(p.old_adults*length(pos_old))),replace=false)
-
-    pos_old_c = findall(x-> humans[x].age>=65 && humans[x].age<75 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
-    pos_old_c = sample(rng,pos_old_c,Int(round(p.old_adults*length(pos_old_c))),replace=false)
-
-    pos_young_c = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<65 && humans[x].comorbidity == 1  && !humans[x].hcw, 1:length(humans))
-    pos_young_c = sample(rng,pos_young_c,Int(round(p.young_adults*length(pos_young_c))),replace=false)
-
-    pos_young_1 = findall(x-> humans[x].age>=40 && humans[x].age<65 && humans[x].comorbidity == 0  && !humans[x].hcw, 1:length(humans))
-    pos_young_1 = sample(rng,pos_young_1,Int(round(p.young_adults*length(pos_young_1))),replace=false)
-
-    pos_young_2 = findall(x-> humans[x].age>=p.min_age_vac && humans[x].age<40 && humans[x].comorbidity == 0  && !humans[x].hcw, 1:length(humans))
-    pos_young_2 = sample(rng,pos_young_2,Int(round(p.young_adults*length(pos_young_2))),replace=false)
-
-    pos_kid = findall(x-> humans[x].age>=12 && humans[x].age<p.min_age_vac, 1:length(humans))
-    pos_kid = sample(rng,pos_kid,Int(round(p.kid_comp*length(pos_kid))),replace=false)
-
-    pos2 = shuffle(rng,[pos_eld;pos_old_c;pos_young_c])
-
-    ll = length([pos_young_1;pos_young_2])
-
-    wv1 = repeat([0.6],length(pos_young_1))
-    wv2 = repeat([0.4],length(pos_young_2))
-
-    wv = Weights([wv1;wv2])
-
-    pos3 = sample(rng,[pos_young_1;pos_young_2],wv,ll,replace = false)
-    v = [pos_hcw;pos2;pos_old;pos3;pos_kid]#shuffle(rng,[pos_y2;pos_k1]);pos_k2]
-
-    return v
 end
 
-function vac_index_new(l::Int64)
 
-    v1 = Array{Int64,1}(undef,p.popsize);
-    v2 = Array{Int64,1}(undef,p.popsize);
-    #n::Int64 = p.fd_2+p.sd1
-    v1_aux::Bool = false
-    v2_aux::Bool = false
-    kk::Int64 = 2
-
-    
-    for i = 1:p.popsize
-        v1[i] = -1
-        v2[i] = -1
-    end
-    jj::Int64 = 1 ###which vac rate we are looking at
-    v1[1] = 0
-    v2[1] = 0
-    eligible::Int64 = 0
-    extra_d::Int64 = 0
-    for i = 2:(p.sec_dose_delay+1)
-        #aux = map(x-> v1[x]-v1[x-1],1:(i-1))
-        v1[i] = v1[i-1]+p.fd_1[jj]+extra_d
-        v2[i] = 0
-        if i > (p.vac_period+1)
-            eligible = eligible+(v1[i-p.vac_period]-v1[i-p.vac_period-1])
-        end
-        if !(jj > length(p.days_change_vac_rate)) && i-1 == p.days_change_vac_rate[jj]
-            jj += 1
-        end
-        if i-1 == p.extra_dose_day
-            extra_d = p.extra_dose_n
-        end
-    end
-
-    kk = p.sec_dose_delay+2
-    
-
-    #eligible::Int64 = 0
-    last_v2::Int64 = 0
-    while !v1_aux || !v2_aux
-        
-        n = p.sd1[jj]+p.fd_2+extra_d
-        eligible = eligible+(v1[kk-p.vac_period]-v1[kk-p.vac_period-1])
-        n1_a = v1_aux ? n : p.sd1[jj]+extra_d
-        v2_1 = min(n1_a,eligible-last_v2)
-
-        v2[kk] = last_v2+v2_1
-        last_v2 = v2[kk]
-        n_aux = n-v2_1
-        
-        v1[kk] = v1[kk-1]+n_aux
-
-        if !(jj > length(p.days_change_vac_rate)) && kk-1 == p.days_change_vac_rate[jj] 
-            jj += 1
-        end
-        if kk-1 == p.extra_dose_day
-            extra_d = p.extra_dose_n
-        end
-        
-        if v1[kk] >= l
-            v1[kk] = l
-            v1_aux = true
-        end
-
-        if v2[kk] >= l
-            v2[kk] = l
-            v2_aux = true
-        end
-        kk += 1
-
-    end
-
-    a = findfirst(x-> x == l, v1)
-
-    for i = (a+1):length(v1)
-        v1[i] = -1
-    end
-    a = findfirst(x-> x == -1, v2)
-
-
-    return v1[1:(a-1)],v2[1:(a-1)]
-end 
-
-function vac_time!(vac_ind::Array{Int64,1},t::Int64,n_1_dose::Array{Int64,1},n_2_dose::Array{Int64,1})
-    
+function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64)
+    aux_states = (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2, MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3, MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
     ##first dose
-    for i = (n_1_dose[t]+1):1:n_1_dose[t+1]
-        x = humans[vac_ind[i]]
-        if x.vac_status == 0
-            if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3,MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
-                pos = findall(k-> !(humans[vac_ind[k]].health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3,MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)) && k>n_1_dose[t+1],1:length(vac_ind))
-                if length(pos) > 0
-                    r = rand(pos)
-                    aux = vac_ind[i]
-                    vac_ind[i] = vac_ind[r]
-                    vac_ind[r] = aux
-                    x = humans[vac_ind[i]]
-                    x.days_vac = 0
-                    x.vac_status = 1
-                    #x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
-                end
-            else
+    rng = MersenneTwister(123*sim)
+    ### lets create distribute the number of doses per age group
+    
+    remaining_doses::Int64 = 0
+
+    for i in 1:length(vac_ind)
+        pos = findall(y-> humans[y].vac_status == 1 && humans[y].days_vac >= p.vac_period[humans[y].vaccine_n] && !(humans[y].health in aux_states),vac_ind[i])
+        
+        l1 = min(vac_rate_2[time_pos,i],length(pos))
+        remaining_doses += vac_rate_2[time_pos,i] - l1
+        for j = 1:l1
+            x = humans[vac_ind[i][pos[j]]]
+            x.days_vac = 0
+            x.vac_status = 2
+            x.index_day = 1
+        end
+
+        pos = findall(y-> humans[y].vac_status == 0 && !(humans[y].health in aux_states),vac_ind[i])
+        
+        l2 = min(vac_rate_1[time_pos,i],length(pos))
+
+        remaining_doses += vac_rate_1[time_pos,i] - l2
+
+        for j = 1:l2
+            x = humans[vac_ind[i][pos[j]]]
+            x.days_vac = 0
+            x.vac_status = 1
+            x.index_day = 1
+    
+            x.vaccine = rand(rng) <= p.pfizer_proportion ? :pfizer : :moderna
+            x.vaccine_n = x.vaccine == :pfizer ? 1 : 2
+        end
+
+    end
+
+    ###remaining_doses are given to any individual within the groups that are vaccinated on that day
+    if remaining_doses > 0
+
+        pos = map(k->findall(y-> humans[y].vac_status == 1 && humans[y].days_vac >= p.vac_period[humans[y].vaccine_n] && !(humans[y].health in aux_states),vac_ind[k]),1:length(vac_ind))
+        pos2 = map(k->findall(y-> humans[y].vac_status == 0 && !(humans[y].health in aux_states),vac_ind[k]),1:length(vac_ind))
+        
+        aux = findall(x-> vac_rate_1[time_pos,x] > 0 || vac_rate_2[time_pos,x] > 0, 1:length(vac_ind))
+        position = map(k-> vac_ind[k][pos[k]],aux)
+        position2 = map(k-> vac_ind[k][pos2[k]],aux)
+
+        r = vcat(position...,position2...)
+        m = min(remaining_doses,length(r))
+
+        rr = sample(rng,r,m,replace=false)
+        
+        for i in rr
+            x = humans[i]
+            if x.vac_status == 0
                 x.days_vac = 0
                 x.vac_status = 1
-                #x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
-            end
-            
-        end
-    end
-
-    for i = (n_2_dose[t]+1):1:n_2_dose[t+1]
-        x = humans[vac_ind[i]]
-
-        if x.health in (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2,MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3, MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
-            
-            if t != (length(n_2_dose)-1)
-                vac_ind = [vac_ind; x.idx]
-                n_2_dose[end] += 1
-            end
-            
-        else
-            if !x.hcw
-                 drop_out_rate = [p.drop_rate;p.drop_rate;p.drop_rate] 
-               #= drop_out_rate = [0;0;0] =#
-                ages_drop = [17;64;999]
-                age_ind = findfirst(k->k>=x.age,ages_drop)
-                if rand() < (1-drop_out_rate[age_ind])
-                    x = humans[vac_ind[i]]
-                    x.days_vac = 0
-                    x.vac_status = 2
-                    x.index_day = 1
-                   # x.relaxed = p.relaxed && x.vac_status == p.status_relax ? true : false
-                end
-            else
+                x.index_day = 1
+                x.vaccine = rand(rng) <= p.pfizer_proportion ? :pfizer : :moderna
+                x.vaccine_n = x.vaccine == :pfizer ? 1 : 2
+            elseif x.vac_status == 1
                 x.days_vac = 0
                 x.vac_status = 2
                 x.index_day = 1
-               
+            else
+                error("error in humans vac status - vac time")
             end
         end
     end
-    return vac_ind
+
 end
 
 function vac_update(x::Human)
-    comm::Int64 = 0
-    if x.age >= 65
-        comm = 1
-    else
-        comm = x.comorbidity
-    end
-
-
+    
     if x.vac_status == 1
         #x.index_day == 2 && error("saiu com indice 2")
         if x.days_vac == p.days_to_protection[x.vac_status][1]#14
@@ -1180,15 +1039,19 @@ function move_to_asymp(x::Human)
     else
         error("No strain in move to asymp")
     end
-
-    #x.swap = x.strain == 1 ? REC : REC2
     # x.iso property remains from either the latent or presymptomatic class
     # if x.iso is true, the asymptomatic individual has limited contacts
 end
 export move_to_asymp
 
 function move_to_pre(x::Human)
-    θ = (0.95, 0.9, 0.85, 0.6, 0.2)  # percentage of sick individuals going to mild infection stage
+    if x.strain == 1 || x.strain == 3
+        θ = (0.95, 0.9, 0.85, 0.6, 0.2)  # percentage of sick individuals going to mild infection stage
+    elseif x.strain == 2 || x.strain == 4
+        θ = (0.89, 0.78, 0.67, 0.48, 0.04) 
+    else
+        error("no strain in move to pre")
+    end  # percentage of sick individuals going to mild infection stage
     x.health = x.swap
     x.tis = 0   # reset time in state 
     x.exp = x.dur[3] # get the presymptomatic period
@@ -1324,8 +1187,38 @@ function move_to_inf(x::Human)
  
     # h = prob of hospital, c = prob of icu AFTER hospital    
    
-    h = x.comorbidity == 1 ? 1.0 : 0.09 #0.376
-    c = x.comorbidity == 1 ? 0.33 : 0.25
+    if x.strain == 1 || x.strain == 3
+        h = x.comorbidity == 1 ? 1.0 : 0.108 #0.376
+        c = x.comorbidity == 1 ? 0.396 : 0.25
+    elseif x.strain == 2 || x.strain == 4
+        if x.age <  20
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.07 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.07 : 0.25*1.07
+        elseif x.age >= 20 && x.age < 30
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.29 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.29 : 0.25*1.29
+        elseif  x.age >= 30 && x.age < 40
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.45 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.45 : 0.25*1.45
+        elseif  x.age >= 40 && x.age < 50
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.61 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.61 : 0.25*1.61
+        elseif  x.age >= 50 && x.age < 60
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.58 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.58 : 0.25*1.58
+        elseif  x.age >= 60 && x.age < 70
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.65 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.65 : 0.25*1.65
+        elseif  x.age >= 70 && x.age < 80
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.45 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.45 : 0.25*1.45
+        else
+            h = x.comorbidity == 1 ? 1.0 : 0.108*1.60 #0.376
+            c = x.comorbidity == 1 ? 0.396*1.60 : 0.25*1.60
+        end
+    else
+        error("no strain")
+    end
     
     groups = [0:34,35:54,55:69,70:84,85:100]
     gg = findfirst(y-> x.age in y,groups)
@@ -1375,7 +1268,7 @@ function move_to_inf(x::Human)
         end
        
     else ## no hospital for this lucky (but severe) individual 
-        aux = (p.mortality_inc^Int(x.strain==2))
+        aux = (p.mortality_inc^Int(x.strain==2 || x.strain == 4))
         
         if x.iso || rand() < p.fsevere 
             x.exp = 1  ## 1 day isolation for severe cases 
@@ -1432,8 +1325,9 @@ function move_to_iiso(x::Human)
     x.health = x.swap
     groups = [0:34,35:54,55:69,70:84,85:100]
     gg = findfirst(y-> x.age in y,groups)
+    
     mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381] # death rate for severe cases.
-    aux = (p.mortality_inc^Int(x.strain==2))
+    aux = (p.mortality_inc^Int(x.strain==2 || x.strain == 4))
     if rand() < mh[gg]*aux
         x.exp = x.dur[4] 
         if x.strain == 1
@@ -1474,15 +1368,15 @@ function move_to_hospicu(x::Human)
     g = findfirst(y-> y >= x.age,age_thres) =#
     aux = [0:4, 5:19, 20:44, 45:54, 55:64, 65:74, 75:84, 85:99]
    
-    if x.strain == 1 || x.strain == 3 || x.strain == 4
+    if x.strain == 1 || x.strain == 3
 
         mh = [0.001, 0.001, 0.0015, 0.0065, 0.01, 0.02, 0.0735, 0.38]
         mc = [0.002,0.002,0.0022, 0.008, 0.022, 0.04, 0.08, 0.4]
 
-    elseif x.strain == 2
+    elseif x.strain == 2  || x.strain == 4
     
-        mh = [0.001, 0.001, 0.0025, 0.008, 0.02, 0.038, 0.15, 0.66]
-        mc = [0.002,0.002,0.0032, 0.01, 0.022, 0.04, 0.2, 0.70]
+        mh = [0.0016, 0.0016, 0.0025, 0.0107, 0.02, 0.038, 0.15, 0.66]
+        mc = [0.0033, 0.0033, 0.0036, 0.0131, 0.022, 0.04, 0.2, 0.70]
 
     else
       
@@ -1738,7 +1632,6 @@ function dyntrans(sys_time, grps,sim)
 end
 export dyntrans
 
-
 function contact_matrix()
     # regular contacts, just with 5 age groups. 
     #  0-4, 5-19, 20-49, 50-64, 65+
@@ -1772,25 +1665,6 @@ end
 #const nbs = negative_binomials()
 const cm = contact_matrix()
 #export negative_binomials, contact_matrix, nbs, cm
-
-#= 
-function negative_binomials_r() 
-    ## the means/sd here are calculated using _calc_avgag
-    means = [10.21, 16.793, 13.7950, 11.2669, 8.0027]
-    sd = [7.65, 11.7201, 10.5045, 9.5935, 6.9638]
-    
-    means = means*p.contact_change_rate
-    sd = sd*p.contact_change_rate
-    totalbraks = length(means)
-    nbinoms = Vector{NegativeBinomial{Float64}}(undef, totalbraks)
-    for i = 1:totalbraks
-        p = 1 - (sd[i]^2-means[i])/(sd[i]^2)
-        r = means[i]^2/(sd[i]^2-means[i])
-        nbinoms[i] =  NegativeBinomial(r, p)
-    end
-    return nbinoms   
-end
-const nbs_r = negative_binomials_r() =#
 
 export negative_binomials
 
@@ -1841,6 +1715,10 @@ function _negative_binomials_15ag()
     end
     return nbinoms    
 end
+
+const vaccination_days = days_vac_f()
+const vac_rate_1 = vaccination_rate_1()
+const vac_rate_2 = vaccination_rate_2()
 ## references: 
 # critical care capacity in Canada https://www.ncbi.nlm.nih.gov/pubmed/25888116
 end # module end

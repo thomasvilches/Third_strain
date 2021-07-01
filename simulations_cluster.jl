@@ -247,26 +247,3 @@ function run_param_scen_cal(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,strai
     run(ip,nsims,folder)
    
 end
-
-
-
-## now, running vaccine and herd immunity, focusing and not focusing in comorbidity, first  argument turns off vac
-function run_calibration(beta = 0.0345,herd_im_v = 0,fs = 0.0,insert_sec=false,strain2_trans=1.0,nsims=1000)
-    init_con = Dict(5=>3, 10=>4, 20=>6, 30=>9)
-    ic = init_con[herd_im_v]
-    time_s = insert_sec ? 100 : 30
-    @everywhere ip = cv.ModelParameters(β=$beta,herd = $herd_im_v,modeltime = $(time_s),initialinf = $ic,ins_sec_strain = $insert_sec,
-    sec_strain_trans=$strain2_trans,fsevere = $fs,fmild=$fs,start_several_inf=true)
-    folder = create_folder(ip)
-
-    #println("$v_e $(ip.vaccine_ef)")
-    run(ip,nsims,folder)
-
-    R0 = readdlm(string(folder,"/R01.dat"),header=false)[:,1]
-    m = mean(R0)
-    sd = std(R0)
-    R02 = readdlm(string(folder,"/R02.dat"),header=false)[:,1]
-    m2 = mean(R02)
-    sd2 = std(R02)
-    println("mean R01: $(m) with std1: $(sd) mean R02: $(m2) with std2: $(sd2)")
-end
