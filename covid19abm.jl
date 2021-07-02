@@ -110,7 +110,7 @@ end
 
     ins_third_strain::Bool = true #insert third strain?
     initialinf3::Int64 = 5 #number of initial infected of third strain
-    time_third_strain::Int64 = 150 #when will the third strain introduced
+    time_third_strain::Int64 = 127 #when will the third strain introduced
     third_strain_trans::Float64 = 1.0 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
 
@@ -1533,16 +1533,16 @@ end
         bf = bf*p.third_strain_trans
 
     elseif xhealth == ASYMP4
-        bf = bf*p.frelasymp*p.fourth_strain_trans #0.11
+        bf = bf*p.frelasymp*p.sec_strain_trans*p.fourth_strain_trans #0.11
 
     elseif xhealth == MILD4 || xhealth == MISO4
-        bf = bf * 0.44*p.fourth_strain_trans
+        bf = bf * 0.44*p.sec_strain_trans*p.fourth_strain_trans
 
     elseif xhealth == INF4 || xhealth == IISO4
-        bf = bf * 0.89*p.fourth_strain_trans
+        bf = bf * 0.89*p.sec_strain_trans*p.fourth_strain_trans
 
     elseif xhealth == PRE4
-        bf = bf*p.fourth_strain_trans
+        bf = bf*p.sec_strain_trans*p.fourth_strain_trans
     end
     return bf
 end
