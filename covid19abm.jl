@@ -116,7 +116,7 @@ end
 
     ins_fourth_strain::Bool = true #insert third strain?
     initialinf4::Int64 = 1 #number of initial infected of third strain
-    time_fourth_strain::Int64 = 176 #when will the third strain introduced
+    time_fourth_strain::Int64 = 194 #when will the third strain introduced
     fourth_strain_trans::Float64 = 1.6 #transmissibility of third strain
     reduction_recovered_4::Float64 = 0.21
     strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
@@ -135,8 +135,8 @@ end
     how_long::Int64 = 1## used to calibrate the model
     how_much::Float64 = 0.0## used to calibrate the model
     rate_increase::Float64 = how_much/how_long## used to calibrate the model
-    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->125+y,0:12)]
-    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.21/13)*y,1:13)]
+    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->125+y,0:15);map(y-> 190+y,0:6);map(y-> 218+y,0:21)]
+    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.225/16)*y,1:16);map(y-> 0.834+(0.03/7)*y,1:7);map(y-> 0.864-(0.11/22)*y,1:22)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
@@ -298,7 +298,7 @@ function main(ip::ModelParameters,sim::Int64)
             h_init3 = [h_init3]
         end
         if p.ins_fourth_strain && st == p.time_fourth_strain #insert third strain
-            insert_infected(PRE, p.initialinf3, 4, 4)[1]
+            insert_infected(PRE, p.initialinf4, 4, 4)[1]
             h_init4 = findall(x->x.health  in (LAT4,MILD4,INF4,PRE4,ASYMP4),humans)
             h_init4 = [h_init4]
         end

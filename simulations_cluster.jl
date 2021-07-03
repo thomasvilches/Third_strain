@@ -208,12 +208,11 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     return RF
 end
 
-function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
+function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,vaccine = true,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
     
-       
     #b = bd[h_i]
     #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = true,
+    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = $vaccine,
     herd = $(h_i),start_several_inf=true,initialinf3=$ic,
     ins_sec_strain = true,third_strain_trans=$strain3_trans,
     fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
