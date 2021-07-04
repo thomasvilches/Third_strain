@@ -13,20 +13,20 @@ Model features include:
 - Isolation of mild/severe cases
 - Isolation of symptomatic individuals
 - The average number of daily contacts can be changed to fit to data
+- Four strains, corresponding to when they were identified in the United States
 
 ## How to download and run
 
-Download the entire repository as a **ZIP** or **clone** the repository.
+Prerequisites: Julia 1.0.4, access to a cluster or a high-compute workstation. 
 
-In [Julia REPL](https://julialang.org/project/) include the file *simulations_cluster.jl* using the command
-
+1) Download or **clone** the entire repository and navigate to the folder.
+2) Launch Julia and cctivate the project by: `julia --project=.`. Double check if the project environment is set correct by entering `Pkg` mode by typing `]`. 
+3) Instantiate the project by typing `] instantiate`.
+4) Include the file *simulations_cluster.jl* using the command
 ```
 include("simulations_cluster.jl")
 ```
-
-Since the model is stochastic, many realizations are required to get an accurate picture of the results. We recommend running this in an embarrassingly parallel manner. This essentially means running the main function repeatedly, saving the results for each replicate. This can be done very easily using Julia's Distributed library. Simply 'addprocs' or using 'ClusterManagers' to connect to a cluster to launch **n** number of parallel workers.
-
-Then use the command
+Note, that in our version of this file we connect to our compute cluster using the `Slurm` cluster software. The user may want to simply use `addprocs` to run locally on their computer, run everything in a serial manner (takes long), or use a compute cluster with the help of `ClusterManagers`. The simulations/scenarios can be launched by executing 
 
 ```
 run_param_scen(b,h,init,fm,fs,trans,vaccination,vaccine,r,index,day,status,days_after)
