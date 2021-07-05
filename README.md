@@ -59,7 +59,7 @@ include("scen.jl")
 
 ***First, make sure that the address 'main_folder' inside function 'create_folder' in file [simulations_cluster](simulations_cluster.jl) points to a valid directory in your system.*** 
 
-The model is parameterized to fit to data from US from Octuber to May. The [incidence data](cases_us.csv) was taken from [NY times](https://github.com/nytimes/covid-19-data/). The function 'run_param_scen' will generate a folder, inside the pointed directory, named **results\__b_\_herd\_immu\__h_\__vaccine_\__trans_\__r_\__index_** in which all the ***variables*** are the ones cited in the previous section. ***b*** is the probability, but the '.' is replaced by '\_'.
+The model is parameterized to fit to data from US from Octuber to May. The [incidence data](cases_us.csv) was taken from [NY times](https://github.com/nytimes/covid-19-data/). The function 'run_param_scen' will generate a folder, inside the pointed directory, named **results\__b_\_herd\_immu\__h_\__vaccine_\__trans4_\__r_\__index_** in which all the ***variables*** are the ones cited in the previous section. ***b*** is the probability, but the '.' is replaced by '\_'.
 
 Inside this folder, one will find different data files. The most important ones are the ones named
 **simlevel_\*\_inc\_\*\*.dat** in which
