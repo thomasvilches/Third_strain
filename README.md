@@ -29,7 +29,7 @@ include("simulations_cluster.jl")
 Note, that in our version of this file we connect to our compute cluster using the `Slurm` cluster software. The user may want to simply use `addprocs` to run locally on their computer, run everything in a serial manner (takes long), or use a compute cluster with the help of `ClusterManagers`. The simulations/scenarios can be launched by executing 
 
 ```
-run_param_scen(b,h,init,fm,fs,trans,vaccination,vaccine,r,index,day,status,days_after)
+run_param_scen(b,h,init,fm,fs,trans3,trans4,vaccination,r,index,day,status,days_after)
 ```
 
 to run the scenarios. The arguments are
@@ -38,9 +38,9 @@ to run the scenarios. The arguments are
 - h: Int64 \- previous herd immunity in the population (either 5, 10, 20, 30 or 50%).
 - init: Int64 \- number of initial infected for third strain.
 - fm and fs: Float64 \- probability of isolation for symptomatic cases (mild and severe).
-- trans: Float64 \- third strain transmissibility.
+- trans3: Float64 \- third strain transmissibility.
+- trans4: Float64 \- third strain transmissibility.
 - vaccination: Bool \- apply vaccination?.
-- vaccine: string \- either \"pfizer\" or \"moderna\".
 - r: Float64 \- vaccine effectiveness reduction for third strain.
 - index: Int64 \- index to differ different files (see *Model output*).
 - day: Int64 \- after this time of simulation, every individual is allowed to go back to normal contacts.
