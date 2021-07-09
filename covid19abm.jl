@@ -133,8 +133,8 @@ end
     how_long::Int64 = 1## used to calibrate the model
     how_much::Float64 = 0.0## used to calibrate the model
     rate_increase::Float64 = how_much/how_long## used to calibrate the model
-    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->81+y,0:(5));map(y->93+y,0:4);map(y->111+y,0:8);map(y->125+y,0:15);map(y-> 190+y,0:6);map(y-> 218+y,0:21)]
-    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.225/16)*y,1:16);map(y-> 0.834+(0.03/7)*y,1:7);map(y-> 0.864-(0.11/22)*y,1:22)]
+    time_change_contact::Array{Int64,1} = [1;map(y->47+y,0:(5));map(y->106+y,0:1);map(y->130+y,0:15);map(y-> 204+y,0:29)]
+    change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.005*y,1:2);map(y->1.05-(0.09/16)*y,1:16);map(y-> 0.96-(0.30/30)*y,1:30)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
 
