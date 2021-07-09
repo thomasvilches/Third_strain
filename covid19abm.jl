@@ -49,14 +49,12 @@ end
     β = 0.0345       
     seasonal::Bool = false ## seasonal betas or not
     popsize::Int64 = 100000
-    prov::Symbol = :usa
+    prov::Symbol = :newyork
     calibration::Bool = false
     calibration2::Bool = false 
-    heatmap::Bool = false
-    ignore_cal::Bool = false
     start_several_inf::Bool = true
     modeltime::Int64 = 500
-    initialinf::Int64 = 50
+    initialinf::Int64 = 20
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     τmild::Int64 = 0 ## days before they self-isolate for mild cases
     fmild::Float64 = 0.0  ## percent of people practice self-isolation
@@ -106,17 +104,17 @@ end
     sec_strain_trans::Float64 = 1.5#1.5 #transmissibility of second strain
     ins_sec_strain::Bool = true #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
-    time_sec_strain::Int64 = 92 #when will the second strain introduced
+    time_sec_strain::Int64 = 125 #when will the second strain introduced -- Jan 3
 
     ins_third_strain::Bool = true #insert third strain?
     initialinf3::Int64 = 5 #number of initial infected of third strain
-    time_third_strain::Int64 = 127 #when will the third strain introduced
+    time_third_strain::Int64 = 201 #when will the third strain introduced - P1 March 20
     third_strain_trans::Float64 = 1.0 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
 
     ins_fourth_strain::Bool = true #insert third strain?
     initialinf4::Int64 = 1 #number of initial infected of third strain
-    time_fourth_strain::Int64 = 194 #when will the third strain introduced
+    time_fourth_strain::Int64 = 173 #when will the third strain introduced
     fourth_strain_trans::Float64 = 1.6 #transmissibility of third strain
     reduction_recovered_4::Float64 = 0.21
     strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
@@ -222,8 +220,8 @@ function runsim(simnum, ip::ModelParameters)
             R03[i] = length(findall(k -> k.sickby in hh3[i],humans))/length(hh3[i])
         end
     end
-    R04 = zeros(Float64,size(hh3,1))
 
+    R04 = zeros(Float64,size(hh4,1))
     for i = 1:size(hh4,1)
         if length(hh4[i]) > 0
             R04[i] = length(findall(k -> k.sickby in hh4[i],humans))/length(hh4[i])

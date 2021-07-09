@@ -55,45 +55,26 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
     ## to ignore for now: miso, iiso, mild 
     #c1 = Symbol.((:LAT, :ASYMP, :INF, :PRE, :MILD,:IISO, :HOS, :ICU, :DED), :_INC)
     #c2 = Symbol.((:LAT, :ASYMP, :INF, :PRE, :MILD,:IISO, :HOS, :ICU, :DED), :_PREV)
-    if !myp.heatmap
-        c1 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2,:LAT3, :HOS3, :ICU3, :DED3,:LAT4, :HOS4, :ICU4, :DED4), :_INC)
-        #c2 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2), :_PREV)
-        for (k, df) in mydfs
-            println("saving dataframe sim level: $k")
-            # simulation level, save file per health status, per age group
-            #for c in vcat(c1..., c2...)
-            for c in vcat(c1...)
-            #for c in vcat(c2...)
-                udf = unstack(df, :time, :sim, c) 
-                fn = string("$(folderprefix)/simlevel_", lowercase(string(c)), "_", k, ".dat")
-                CSV.write(fn, udf)
-            end
-            println("saving dataframe time level: $k")
-            # time level, save file per age group
-            #yaf = compute_yearly_average(df)       
-            #fn = string("$(folderprefix)/timelevel_", k, ".dat")   
-            #CSV.write(fn, yaf)       
+    
+    c1 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2,:LAT3, :HOS3, :ICU3, :DED3,:LAT4, :HOS4, :ICU4, :DED4), :_INC)
+    #c2 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2), :_PREV)
+    for (k, df) in mydfs
+        println("saving dataframe sim level: $k")
+        # simulation level, save file per health status, per age group
+        #for c in vcat(c1..., c2...)
+        for c in vcat(c1...)
+        #for c in vcat(c2...)
+            udf = unstack(df, :time, :sim, c) 
+            fn = string("$(folderprefix)/simlevel_", lowercase(string(c)), "_", k, ".dat")
+            CSV.write(fn, udf)
         end
-    else
-        c1 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2,:LAT3, :HOS3, :ICU3, :DED3,:LAT4, :HOS4, :ICU4, :DED4), :_INC)
-        #c2 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2), :_PREV)
-        for (k, df) in mydfs
-            println("saving dataframe sim level: $k")
-            # simulation level, save file per health status, per age group
-            
-            for c in vcat(c1...)
-            #for c in vcat(c2...)
-                udf = unstack(df, :time, :sim, c) 
-                fn = string("$(folderprefix)/simlevel_", lowercase(string(c)), "_", k, ".dat")
-                CSV.write(fn, udf)
-            end
-            println("saving dataframe time level: $k")
-            # time level, save file per age group
-            #yaf = compute_yearly_average(df)       
-            #fn = string("$(folderprefix)/timelevel_", k, ".dat")   
-            #CSV.write(fn, yaf)       
-        end
+        println("saving dataframe time level: $k")
+        # time level, save file per age group
+        #yaf = compute_yearly_average(df)       
+        #fn = string("$(folderprefix)/timelevel_", k, ".dat")   
+        #CSV.write(fn, yaf)       
     end
+    
    
     R01 = [cdr[i].R01 for i=1:nsims]
     R02 = [cdr[i].R02 for i=1:nsims]
@@ -197,7 +178,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     
     
     #RF = string("heatmap/results_prob_","$(replace(string(ip.β), "." => "_"))","_vac_","$(replace(string(ip.vaccine_ef), "." => "_"))","_herd_immu_","$(ip.herd)","_$strategy","cov_$(replace(string(ip.cov_val)))") ## 
-    main_folder = "/data/thomas-covid/third_strain_revision"
+    main_folder = "/data/thomas-covid/NYC_July"
     #main_folder = "."
    
     RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.fourth_strain_trans)_$(ip.strain_ef_red3)_$(ip.file_index)") ##  
@@ -226,13 +207,13 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_t
 end
 
 
-function run_param_scen_cal(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,rc=[0.0],dc=[0],mt=500,nsims=500)
+function run_param_scen_cal(b,h_i = 0,ic1=1,ic2=1,ic3=1,ic4=1,strain2_trans=1.5,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,rc=[0.0],dc=[0],mt=500,nsims=500)
     
        
     #b = bd[h_i]
     #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = true,
-    herd = $(h_i),start_several_inf=true,initialinf3=$ic,
+    @everywhere ip = cv.ModelParameters(β=$b,fsevere = 1.0,fmild = 1.0,vaccinating = true,
+    herd = $(h_i),start_several_inf=true,initialinf3=$ic3,initialinf=$ic1,initialinf2=$ic2,initialinf4=$ic4,
     ins_sec_strain = true,third_strain_trans=$strain3_trans,sec_strain_trans=$strain2_trans,
     fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
     time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
