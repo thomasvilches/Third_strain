@@ -167,7 +167,7 @@ Base.show(io::IO, ::MIME"text/plain", z::Human) = dump(z)
 const humans = Array{Human}(undef, 0) 
 const p = ModelParameters()  ## setup default parameters
 const agebraks = @SVector [0:4, 5:19, 20:49, 50:64, 65:99]
-const agebraks_vac = @SVector [12:15, 16:17, 18:24, 25:39, 40:49, 50:64, 65:74, 75:99]
+const agebraks_vac = @SVector [0:0, 1:4, 5:14, 15:24, 25:44, 45:64, 65:74, 75:99]
 const BETAS = Array{Float64, 1}(undef, 0) ## to hold betas (whether fixed or seasonal), array will get resized
 const ct_data = ct_data_collect()
 export ModelParameters, HEALTH, Human, humans, BETAS
@@ -344,18 +344,18 @@ export main
 
 function vac_selection(sim::Int64)
     
+    
 
     if p.priority
-        aux_1 = map(k-> findall(y-> y.age in k && y.comorbidity == 1,humans),agebraks_vac)
-        aux_2 = map(k-> findall(y-> y.age in k && y.comorbidity == 0,humans),agebraks_vac)
+        aux_1 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 1,humans),agebraks_vac)
+        aux_2 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 0,humans),agebraks_vac)
 
         v = map(x-> [aux_1[x];aux_2[x]],1:length(aux_1))
     else
         v = map(k-> findall(y-> y.age in k,humans),agebraks_vac)
-
     end
     
-
+    return v
 end
 
 
