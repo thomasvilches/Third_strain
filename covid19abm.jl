@@ -120,7 +120,7 @@ end
     time_fourth_strain::Int64 = 173 #when will the third strain introduced
     fourth_strain_trans::Float64 = 1.6 #transmissibility of third strain
 
-    ins_fifth_strain::Bool = false #insert third strain?
+    ins_fifth_strain::Bool = true #insert third strain?
     initialinf5::Int64 = 1 #number of initial infected of third strain
     time_fifth_strain::Int64 = 7 #when will the third strain introduced
     fifth_strain_trans::Float64 = 1.35 #transmissibility of third strain
@@ -133,9 +133,9 @@ end
 
     #=------------ Vaccine Efficacy ----------------------------=#
     days_to_protection::Array{Array{Int64,1},1} = [[14],[0;7]]
-    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]]] #### 50:5:80
-    vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]]] #### 50:5:80
-    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.974]]]#### 50:5:80
+    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]],[[0.46],[0.6;0.92]]] #### 50:5:80
+    vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]],[[0.57],[0.66;0.94]]] #### 50:5:80
+    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.974]],[[0.62],[0.80;0.92]]]#### 50:5:80
    
 
     time_change::Int64 = 999## used to calibrate the model
@@ -1090,9 +1090,9 @@ function move_to_inf(x::Human)
         
         if x.iso || rand() < p.fsevere 
             x.exp = 1  ## 1 day isolation for severe cases 
-            aux_v = [REC;REC2;REC3;REC4;REC5]
+            aux_v = [IISO;IISO2;IISO3;IISO4;IISO5]
             x.swap = aux_v[x.strain]
-            x.swap_status = REC
+            x.swap_status = IISO
             #x.swap = x.strain == 1 ? IISO : IISO2
         else
             if rand() < mh[gg]*aux
@@ -1148,7 +1148,7 @@ function move_to_hospicu(x::Human)
     g = findfirst(y-> y >= x.age,age_thres) =#
     aux = [0:4, 5:19, 20:44, 45:54, 55:64, 65:74, 75:84, 85:99]
    
-    if x.strain == 1 || x.strain == 3
+    if x.strain == 1 || x.strain == 3 || x.strain == 5
 
         mh = [0.001, 0.001, 0.0015, 0.0065, 0.01, 0.02, 0.0735, 0.38]
         mc = [0.002,0.002,0.0022, 0.008, 0.022, 0.04, 0.08, 0.4]
