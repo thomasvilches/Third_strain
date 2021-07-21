@@ -55,7 +55,7 @@ end
     calibration::Bool = false
     calibration2::Bool = false 
     start_several_inf::Bool = true
-    modeltime::Int64 = 316
+    modeltime::Int64 = 318
     initialinf::Int64 = 20
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     τmild::Int64 = 0 ## days before they self-isolate for mild cases
