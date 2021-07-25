@@ -2,7 +2,7 @@ module covid19abm
 using Base
 using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 include("matrices_code.jl")
-@enum HEALTH SUS LAT PRE ASYMP MILD MISO INF IISO HOS ICU REC DED  LAT2 PRE2 ASYMP2 MILD2 MISO2 INF2 IISO2 HOS2 ICU2 REC2 DED2 LAT3 PRE3 ASYMP3 MILD3 MISO3 INF3 IISO3 HOS3 ICU3 REC3 DED3 LAT4 PRE4 ASYMP4 MILD4 MISO4 INF4 IISO4 HOS4 ICU4 REC4 DED4 LAT5 PRE5 ASYMP5 MILD5 MISO5 INF5 IISO5 HOS5 ICU5 REC5 DED5 UNDEF
+@enum HEALTH SUS LAT PRE ASYMP MILD MISO INF IISO HOS ICU REC DED  LAT2 PRE2 ASYMP2 MILD2 MISO2 INF2 IISO2 HOS2 ICU2 REC2 DED2 LAT3 PRE3 ASYMP3 MILD3 MISO3 INF3 IISO3 HOS3 ICU3 REC3 DED3 LAT4 PRE4 ASYMP4 MILD4 MISO4 INF4 IISO4 HOS4 ICU4 REC4 DED4 LAT5 PRE5 ASYMP5 MILD5 MISO5 INF5 IISO5 HOS5 ICU5 REC5 DED5 LAT6 PRE6 ASYMP6 MILD6 MISO6 INF6 IISO6 HOS6 ICU6 REC6 DED6 UNDEF
 Base.@kwdef mutable struct Human
     idx::Int64 = 0 
     health::HEALTH = SUS
@@ -104,26 +104,34 @@ end
     extra_dose_day::Int64 = 999 #when extra doses are implemented
     days_Rt::Array{Int64,1} = [100;200;300] #days to get Rt
 
+    ##Alpha - B.1.1.7
     sec_strain_trans::Float64 = 1.5#1.5 #transmissibility of second strain
     ins_sec_strain::Bool = true #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
     time_sec_strain::Int64 = 125 #when will the second strain introduced -- Jan 3
-
+    ## Gamma - P.1
     ins_third_strain::Bool = true #insert third strain?
-    initialinf3::Int64 = 5 #number of initial infected of third strain
+    initialinf3::Int64 = 1 #number of initial infected of third strain
     time_third_strain::Int64 = 201 #when will the third strain introduced - P1 March 20
-    third_strain_trans::Float64 = 1.0 #transmissibility of third strain
+    third_strain_trans::Float64 = 1.6 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
-
+    ## Delta - B.1.617.2
     ins_fourth_strain::Bool = true #insert third strain?
     initialinf4::Int64 = 1 #number of initial infected of third strain
     time_fourth_strain::Int64 = 173 #when will the third strain introduced
-    fourth_strain_trans::Float64 = 1.6 #transmissibility of third strain
+    fourth_strain_trans::Float64 = 1.3 #transmissibility of third strain
 
+    ## Iota - B.1.526
     ins_fifth_strain::Bool = true #insert third strain?
     initialinf5::Int64 = 1 #number of initial infected of third strain
     time_fifth_strain::Int64 = 7 #when will the third strain introduced
     fifth_strain_trans::Float64 = 1.35 #transmissibility of third strain
+
+    ## Beta - B.1.351
+    ins_sixth_strain::Bool = true #insert third strain?
+    initialinf6::Int64 = 1 #number of initial infected of third strain
+    time_sixth_strain::Int64 = 7 #when will the third strain introduced
+    sixth_strain_trans::Float64 = 1.35 #transmissibility of third strain
 
     reduction_recovered_4::Float64 = 0.21
     strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
@@ -152,7 +160,6 @@ end
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
-    priority::Bool = true
     scenario::Symbol = :statuscuo
     time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
@@ -176,7 +183,7 @@ Base.show(io::IO, ::MIME"text/plain", z::Human) = dump(z)
 const humans = Array{Human}(undef, 0) 
 const p = ModelParameters()  ## setup default parameters
 const agebraks = @SVector [0:4, 5:19, 20:49, 50:64, 65:99]
-const agebraks_vac = @SVector [0:0, 1:4, 5:14, 15:24, 25:44, 45:64, 65:74, 75:99]
+const agebraks_vac = @SVector [12:15, 16:17, 18:24, 25:39, 40:49, 50:64, 65:74, 75:99]
 const BETAS = Array{Float64, 1}(undef, 0) ## to hold betas (whether fixed or seasonal), array will get resized
 const ct_data = ct_data_collect()
 export ModelParameters, HEALTH, Human, humans, BETAS
@@ -255,7 +262,10 @@ function main(ip::ModelParameters,sim::Int64)
     hmatrix = zeros(Int16, p.popsize, p.modeltime)
     initialize() # initialize population
     
-     #h_init::Int64 = 0
+    vac_rate_1 = vaccination_rate_1()
+    vac_rate_2 = vaccination_rate_2()
+
+    #h_init::Int64 = 0
     # insert initial infected agents into the model
     # and setup the right swap function. 
     if p.start_several_inf
@@ -355,14 +365,11 @@ function vac_selection(sim::Int64)
     
     
 
-    if p.priority
-        aux_1 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 1,humans),agebraks_vac)
-        aux_2 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 0,humans),agebraks_vac)
+   
+    aux_1 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 1,humans),agebraks_vac)
+    aux_2 = map(k-> findall(y-> y.age in k && y.age >= 12 && y.comorbidity == 0,humans),agebraks_vac)
 
-        v = map(x-> [aux_1[x];aux_2[x]],1:length(aux_1))
-    else
-        v = map(k-> findall(y-> y.age in k,humans),agebraks_vac)
-    end
+    v = map(x-> [aux_1[x];aux_2[x]],1:length(aux_1))
     
     return v
 end
@@ -623,21 +630,6 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 ## initialization functions 
 function get_province_ag(prov) 
     ret = @match prov begin        
-        #=:alberta => Distributions.Categorical(@SVector [0.0655, 0.1851, 0.4331, 0.1933, 0.1230])
-        :bc => Distributions.Categorical(@SVector [0.0475, 0.1570, 0.3905, 0.2223, 0.1827])
-        :canada => Distributions.Categorical(@SVector [0.0540, 0.1697, 0.3915, 0.2159, 0.1689])
-        :manitoba => Distributions.Categorical(@SVector [0.0634, 0.1918, 0.3899, 0.1993, 0.1556])
-        :newbruns => Distributions.Categorical(@SVector [0.0460, 0.1563, 0.3565, 0.2421, 0.1991])
-        :newfdland => Distributions.Categorical(@SVector [0.0430, 0.1526, 0.3642, 0.2458, 0.1944])
-        :nwterrito => Distributions.Categorical(@SVector [0.0747, 0.2026, 0.4511, 0.1946, 0.0770])
-        :novasco => Distributions.Categorical(@SVector [0.0455, 0.1549, 0.3601, 0.2405, 0.1990])
-        :nunavut => Distributions.Categorical(@SVector [0.1157, 0.2968, 0.4321, 0.1174, 0.0380])
-        
-        :pei => Distributions.Categorical(@SVector [0.0490, 0.1702, 0.3540, 0.2329, 0.1939])
-        :quebec => Distributions.Categorical(@SVector [0.0545, 0.1615, 0.3782, 0.2227, 0.1831])
-        :saskat => Distributions.Categorical(@SVector [0.0666, 0.1914, 0.3871, 0.1997, 0.1552])
-        :yukon => Distributions.Categorical(@SVector [0.0597, 0.1694, 0.4179, 0.2343, 0.1187])=#
-        :ontario => Distributions.Categorical(@SVector [0.0519, 0.1727, 0.3930, 0.2150, 0.1674])
         :usa => Distributions.Categorical(@SVector [0.059444636404977,0.188450296592341,0.396101793107413,0.189694011721906,0.166309262173363])
         :newyork   => Distributions.Categorical(@SVector [0.064000, 0.163000, 0.448000, 0.181000, 0.144000])
         _ => error("shame for not knowing your canadian provinces and territories")

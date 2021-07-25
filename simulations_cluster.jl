@@ -206,16 +206,16 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_t
 end
 
 
-function run_param_scen_cal(b,h_i = 0,ic1=1,ic2=1,ic3=1,ic4=1,strain2_trans=1.5,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,rc=[0.0],dc=[0],mt=500,nsims=500)
+function run_param_scen_cal(b,h_i = 0,ic1=1,ic2=1,ic3=1,ic4=1,ic5=1,ic6=1,when2=1,when3 = 1,when4=1,when5=1,when6=1,red = 0.0,index = 0,dosis=3,ta = 999,rc=[0.0],dc=[0],mt=500,vac=true,nsims=500)
     
        
     #b = bd[h_i]
     #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = 1.0,fmild = 1.0,vaccinating = true,
-    herd = $(h_i),start_several_inf=true,initialinf3=$ic3,initialinf=$ic1,initialinf2=$ic2,initialinf4=$ic4,
-    ins_sec_strain = true,third_strain_trans=$strain3_trans,sec_strain_trans=$strain2_trans,
-    fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
-    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
+    @everywhere ip = cv.ModelParameters(β=$b,fsevere = 1.0,fmild = 1.0,vaccinating = $vac,
+    herd = $(h_i),start_several_inf=true,initialinf3=$ic3,initialinf6=$ic6,initialinf=$ic1,initialinf2=$ic2,initialinf5=$ic5,initialinf4=$ic4,
+    time_sec_strain = $when2,time_third_strain = $when3,time_fourth_strain = $when4,time_fifth_strain = $when5,time_sixth_strain = $when6,
+    strain_ef_red3 = $red,strain_ef_red4 = $red,
+    status_relax = $dosis, relax_after = $ta,file_index = $index,
     modeltime=$mt,
     time_change_contact = $dc,
     change_rate_values = $rc)
