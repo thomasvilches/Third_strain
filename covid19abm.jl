@@ -35,7 +35,6 @@ Base.@kwdef mutable struct Human
     ag_new::Int16 = -1
     hcw::Bool = false
     days_vac::Int64 = -1
-    vac_red::Float64 = 0.0
     first_one::Bool = false
     strain::Int16 = -1
     index_day::Int64 = 1
@@ -51,7 +50,7 @@ end
     β = 0.0345       
     seasonal::Bool = false ## seasonal betas or not
     popsize::Int64 = 100000
-    prov::Symbol = :newyork
+    prov::Symbol = :mississippi
     calibration::Bool = false
     calibration2::Bool = false 
     start_several_inf::Bool = true
@@ -76,7 +75,7 @@ end
     vac_com_dec_min::Float16 = 0.0 # how much the comorbidity decreases the vac eff
     herd::Int8 = 0 #typemax(Int32) ~ millions
     file_index::Int16 = 0
-    nstrains::Int16 = 5
+    nstrains::Int16 = 6
     
     #the cap for coverage should be 90% for 65+; 95% for HCW; 80% for 50-64; 60% for 16-49; and then 50% for 12-15 (starting from June 1).
 
@@ -89,9 +88,7 @@ end
     kid_comp::Float64 = 0.8
     #comor_comp::Float64 = 0.7 #prop comorbidade tomam
 
-    vac_period::Array{Int64,1} = [21;28]
-    n_comor_comp::Float64 = 1.0
-    min_age_vac::Int64 = 16
+    vac_period::Array{Int64,1} = [21]
     
     vaccinating::Bool = true #vaccinating?
     drop_rate::Float64 = 0.0 #probability of not getting second dose
@@ -108,42 +105,43 @@ end
     sec_strain_trans::Float64 = 1.5#1.5 #transmissibility of second strain
     ins_sec_strain::Bool = true #insert second strain?
     initialinf2::Int64 = 1 #number of initial infected of second strain
-    time_sec_strain::Int64 = 125 #when will the second strain introduced -- Jan 3
+    time_sec_strain::Int64 = 178 #when will the second strain introduced -- Jan 3
+
     ## Gamma - P.1
     ins_third_strain::Bool = true #insert third strain?
     initialinf3::Int64 = 1 #number of initial infected of third strain
-    time_third_strain::Int64 = 201 #when will the third strain introduced - P1 March 20
+    time_third_strain::Int64 = 206 #when will the third strain introduced - P1 March 20
     third_strain_trans::Float64 = 1.6 #transmissibility of third strain
     reduction_recovered::Float64 = 0.21
+
     ## Delta - B.1.617.2
-    ins_fourth_strain::Bool = true #insert third strain?
-    initialinf4::Int64 = 1 #number of initial infected of third strain
-    time_fourth_strain::Int64 = 173 #when will the third strain introduced
-    fourth_strain_trans::Float64 = 1.3 #transmissibility of third strain
+    ins_fourth_strain::Bool = true #insert fourth strain?
+    initialinf4::Int64 = 1 #number of initial infected of fourth strain
+    time_fourth_strain::Int64 = 187 #when will the fourth strain introduced
+    fourth_strain_trans::Float64 = 1.3 #transmissibility compared to second strain strain
 
     ## Iota - B.1.526
-    ins_fifth_strain::Bool = true #insert third strain?
-    initialinf5::Int64 = 1 #number of initial infected of third strain
-    time_fifth_strain::Int64 = 7 #when will the third strain introduced
-    fifth_strain_trans::Float64 = 1.35 #transmissibility of third strain
+    ins_fifth_strain::Bool = true #insert fifth strain?
+    initialinf5::Int64 = 1 #number of initial infected of fifth strain
+    time_fifth_strain::Int64 = 190 #when will the fifth strain introduced
+    fifth_strain_trans::Float64 = 1.35 #transmissibility of fifth strain
 
     ## Beta - B.1.351
     ins_sixth_strain::Bool = true #insert third strain?
-    initialinf6::Int64 = 1 #number of initial infected of third strain
-    time_sixth_strain::Int64 = 7 #when will the third strain introduced
-    sixth_strain_trans::Float64 = 1.35 #transmissibility of third strain
+    initialinf6::Int64 = 1 #number of initial infected of sixth strain
+    time_sixth_strain::Int64 = 212 #when will the sixth strain introduced
+    sixth_strain_trans::Float64 = 1.2 #transmissibility of sixth strain
 
     reduction_recovered_4::Float64 = 0.21
-    strain_ef_red2::Float64 = 0.0 #reduction in efficacy against second strain
     strain_ef_red3::Float64 = 0.8 #reduction in efficacy against third strain
     strain_ef_red4::Float64 = 0.8 #reduction in efficacy against third strain
     mortality_inc::Float64 = 1.64 #The mortality increase when infected by strain 2
 
     #=------------ Vaccine Efficacy ----------------------------=#
     days_to_protection::Array{Array{Int64,1},1} = [[14],[0;7]]
-    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]],[[0.46],[0.6;0.92]]] #### 50:5:80
-    vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]],[[0.57],[0.66;0.94]]] #### 50:5:80
-    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.974]],[[0.62],[0.80;0.92]]]#### 50:5:80
+    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]],[[0.46],[0.6;0.92]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]]] #### 50:5:80
+    vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]],[[0.57],[0.66;0.94]],[[0.332],[0.66;0.94]]] #### 50:5:80
+    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.974]],[[0.62],[0.80;0.92]],[[0.34],[0.68;0.974]]]#### 50:5:80
    
 
     time_change::Int64 = 999## used to calibrate the model
@@ -262,8 +260,8 @@ function main(ip::ModelParameters,sim::Int64)
     hmatrix = zeros(Int16, p.popsize, p.modeltime)
     initialize() # initialize population
     
-    vac_rate_1 = vaccination_rate_1()
-    vac_rate_2 = vaccination_rate_2()
+    vac_rate_1::Matrix{Int64} = vaccination_rate_1()
+    vac_rate_2::Matrix{Int64} = vaccination_rate_2()
 
     #h_init::Int64 = 0
     # insert initial infected agents into the model
@@ -319,6 +317,9 @@ function main(ip::ModelParameters,sim::Int64)
         if p.ins_fifth_strain && st == p.time_fifth_strain #insert third strain
             insert_infected(PRE, p.initialinf5, 4, 5)[1]
         end
+        if p.ins_sixth_strain && st == p.time_sixth_strain #insert third strain
+            insert_infected(PRE, p.initialinf6, 4, 6)[1]
+        end
         if length(p.time_change_contact) >= count_change && p.time_change_contact[count_change] == st ###change contact pattern throughout the time
             setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
             count_change += 1
@@ -337,7 +338,7 @@ function main(ip::ModelParameters,sim::Int64)
             time_pos += 1
         end
         time_vac += 1
-        time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1)
+        time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1,vac_rate_1,vac_rate_2)
        
        
         _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
@@ -375,31 +376,32 @@ function vac_selection(sim::Int64)
 end
 
 
-function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64)
+function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64,vac_rate_1::Matrix{Int64},vac_rate_2::Matrix{Int64})
     aux_states = (MILD, MISO, INF, IISO, HOS, ICU, DED)
     ##first dose
     rng = MersenneTwister(123*sim)
     ### lets create distribute the number of doses per age group
     
     remaining_doses::Int64 = 0
-
+    total_given::Int64 = 0
     for i in 1:length(vac_ind)
         pos = findall(y-> humans[y].vac_status == 1 && humans[y].days_vac >= p.vac_period[humans[y].vaccine_n] && !(humans[y].health_status in aux_states),vac_ind[i])
         
         l1 = min(vac_rate_2[time_pos,i],length(pos))
-        remaining_doses += vac_rate_2[time_pos,i] - l1
+        remaining_doses += (vac_rate_2[time_pos,i] - l1)
         for j = 1:l1
             x = humans[vac_ind[i][pos[j]]]
             x.days_vac = 0
             x.vac_status = 2
             x.index_day = 1
+            total_given += 1
         end
 
         pos = findall(y-> humans[y].vac_status == 0 && !(humans[y].health_status in aux_states),vac_ind[i])
         
         l2 = min(vac_rate_1[time_pos,i],length(pos))
 
-        remaining_doses += vac_rate_1[time_pos,i] - l2
+        remaining_doses += (vac_rate_1[time_pos,i] - l2)
 
         for j = 1:l2
             x = humans[vac_ind[i][pos[j]]]
@@ -409,6 +411,7 @@ function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64)
     
             x.vaccine = rand(rng) <= p.pfizer_proportion ? :pfizer : :moderna
             x.vaccine_n = x.vaccine == :pfizer ? 1 : 2
+            total_given += 1
         end
 
     end
@@ -436,14 +439,22 @@ function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64)
                 x.index_day = 1
                 x.vaccine = rand(rng) <= p.pfizer_proportion ? :pfizer : :moderna
                 x.vaccine_n = x.vaccine == :pfizer ? 1 : 2
+                total_given += 1
             elseif x.vac_status == 1
                 x.days_vac = 0
                 x.vac_status = 2
                 x.index_day = 1
+                total_given += 1
             else
                 error("error in humans vac status - vac time")
             end
         end
+    end
+
+    t = sum(vac_rate_1[time_pos,:]+vac_rate_2[time_pos,:])
+
+    if total_given > t
+        error("vaccination")
     end
 
 end
@@ -594,7 +605,8 @@ function herd_immu_dist_4(sim::Int64,strain::Int64)
         vec_n = [0;0;0;0;0;0]
        
     else
-        error("No herd immunity")
+        vec_n = map(y->Int(round(y*p.herd/10)),[32; 279; 489; 143; 24; 33])
+        N = 16
     end
 
     for g = 1:6
@@ -629,7 +641,9 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 
 ## initialization functions 
 function get_province_ag(prov) 
-    ret = @match prov begin        
+    ret = @match prov begin    
+        :mississippi => Distributions.Categorical(@SVector [0.061649467146974,0.200597819531213,0.384003287469814,0.190218298882213,0.163531126969785])
+        :arkansas => Distributions.Categorical(@SVector [0.062450709191187,0.195660155530313,0.380966424592187,0.187325618231005,0.173597092455309])
         :usa => Distributions.Categorical(@SVector [0.059444636404977,0.188450296592341,0.396101793107413,0.189694011721906,0.166309262173363])
         :newyork   => Distributions.Categorical(@SVector [0.064000, 0.163000, 0.448000, 0.181000, 0.144000])
         _ => error("shame for not knowing your canadian provinces and territories")
@@ -669,7 +683,6 @@ function initialize()
             x.isovia = :qu         
         end
         x.comorbidity = comorbidity(x.age)
-        x.vac_red = p.vac_com_dec_min+rand()*(p.vac_com_dec_max-p.vac_com_dec_min)
         # initialize the next day counts (this is important in initialization since dyntrans runs first)
         get_nextday_counts(x)
         
@@ -712,12 +725,12 @@ function insert_infected(health, num, ag,strain)
     ## inserts a number of infected people in the population randomly
     ## this function should resemble move_to_inf()
     l = findall(x -> x.health == SUS && x.ag == ag, humans)
-    aux_pre = [PRE;PRE2;PRE3;PRE4;PRE5]
-    aux_lat = [LAT;LAT2;LAT3;LAT4;LAT5]
-    aux_mild = [MILD;MILD2;MILD3;MILD4;MILD5]
-    aux_inf = [INF;INF2;INF3;INF4;INF5]
-    aux_asymp = [ASYMP;ASYMP2;ASYMP3;ASYMP4;ASYMP5]
-    aux_rec = [REC;REC2;REC3;REC4;REC5]
+    aux_pre = [PRE;PRE2;PRE3;PRE4;PRE5;PRE6]
+    aux_lat = [LAT;LAT2;LAT3;LAT4;LAT5;LAT6]
+    aux_mild = [MILD;MILD2;MILD3;MILD4;MILD5;MILD6]
+    aux_inf = [INF;INF2;INF3;INF4;INF5;INF6]
+    aux_asymp = [ASYMP;ASYMP2;ASYMP3;ASYMP4;ASYMP5;ASYMP6]
+    aux_rec = [REC;REC2;REC3;REC4;REC5;REC6]
     if length(l) > 0 && num < length(l)
         h = sample(l, num; replace = false)
         @inbounds for i in h 
@@ -809,17 +822,17 @@ function time_update()
     end
 
 
-    (lat,lat2,lat3,lat4,lat5) = lat_v
-    (mild,mild2,mild3,mild4,mild5) = mild_v
-    (miso,miso2,miso3,miso4,miso5) = miso_v
-    (inf,inf2,inf3,inf4,inf5) = inf_v
-    (infiso,infiso2,infiso3,infiso4,infiso5) = infiso_v
-    (hos,hos2,hos3,hos4,hos5) = hos_v
-    (icu,icu2,icu3,icu4,icu5) = icu_v
-    (rec,rec2,rec3,rec4,rec5) = rec_v
-    (ded,ded2,ded3,ded4,ded5) = ded_v
+    (lat,lat2,lat3,lat4,lat5,lat6) = lat_v
+    (mild,mild2,mild3,mild4,mild5,mild6) = mild_v
+    (miso,miso2,miso3,miso4,miso5,miso6) = miso_v
+    (inf,inf2,inf3,inf4,inf5,inf6) = inf_v
+    (infiso,infiso2,infiso3,infiso4,infiso5,infiso6) = infiso_v
+    (hos,hos2,hos3,hos4,hos5,hos6) = hos_v
+    (icu,icu2,icu3,icu4,icu5,icu6) = icu_v
+    (rec,rec2,rec3,rec4,rec5,rec6) = rec_v
+    (ded,ded2,ded3,ded4,ded5,ded6) = ded_v
 
-    return (lat, mild, miso, inf, infiso, hos, icu, rec, ded,lat2, mild2, miso2, inf2, infiso2, hos2, icu2, rec2, ded2,lat3, mild3, miso3, inf3, infiso3, hos3, icu3, rec3, ded3, lat4, mild4, miso4, inf4, infiso4, hos4, icu4, rec4, ded4, lat5, mild5, miso5, inf5, infiso5, hos5, icu5, rec5, ded5)
+    return (lat, mild, miso, inf, infiso, hos, icu, rec, ded,lat2, mild2, miso2, inf2, infiso2, hos2, icu2, rec2, ded2,lat3, mild3, miso3, inf3, infiso3, hos3, icu3, rec3, ded3, lat4, mild4, miso4, inf4, infiso4, hos4, icu4, rec4, ded4, lat5, mild5, miso5, inf5, infiso5, hos5, icu5, rec5, ded5, lat6, mild6, miso6, inf6, infiso6, hos6, icu6, rec6, ded6)
 end
 export time_update
 
@@ -875,12 +888,12 @@ function move_to_latent(x::Human)
  
     if rand() < (symp_pcts[g])*auxiliar
 
-        aux_v = [PRE;PRE2;PRE3;PRE4;PRE5]
+        aux_v = [PRE;PRE2;PRE3;PRE4;PRE5;PRE6]
         x.swap = aux_v[x.strain]
         x.swap_status = PRE
         
     else
-        aux_v = [ASYMP;ASYMP2;ASYMP3;ASYMP4;ASYMP5]
+        aux_v = [ASYMP;ASYMP2;ASYMP3;ASYMP4;ASYMP5;ASYMP6]
         x.swap = aux_v[x.strain]
         x.swap_status = ASYMP
         
@@ -902,7 +915,7 @@ function move_to_asymp(x::Human)
     x.tis = 0 
     x.exp = x.dur[2] # get the presymptomatic period
    
-    aux_v = [REC;REC2;REC3;REC4;REC5]
+    aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
     x.swap = aux_v[x.strain]
     x.swap_status = REC
     # x.iso property remains from either the latent or presymptomatic class
@@ -911,7 +924,7 @@ end
 export move_to_asymp
 
 function move_to_pre(x::Human)
-    if x.strain == 1 || x.strain == 3 || x.strain == 5
+    if x.strain == 1 || x.strain == 3 || x.strain == 5 || x.strain == 6
         θ = (0.95, 0.9, 0.85, 0.6, 0.2)  # percentage of sick individuals going to mild infection stage
     elseif x.strain == 2 || x.strain == 4
         θ = (0.89, 0.78, 0.67, 0.48, 0.04) 
@@ -932,11 +945,11 @@ function move_to_pre(x::Human)
     end
 
     if rand() < (1-θ[x.ag])*auxiliar
-        aux_v = [INF;INF2;INF3;INF4;INF5]
+        aux_v = [INF;INF2;INF3;INF4;INF5;INF6]
         x.swap = aux_v[x.strain]
         x.swap_status = INF
     else 
-        aux_v = [MILD;MILD2;MILD3;MILD4;MILD5]
+        aux_v = [MILD;MILD2;MILD3;MILD4;MILD5;MILD6]
         x.swap = aux_v[x.strain]
         x.swap_status = MILD
     end
@@ -952,7 +965,7 @@ function move_to_mild(x::Human)
     x.health_status = x.swap_status
     x.tis = 0 
     x.exp = x.dur[4]
-    aux_v = [REC;REC2;REC3;REC4;REC5]
+    aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
     x.swap = aux_v[x.strain]
     x.swap_status = REC
     
@@ -966,7 +979,7 @@ function move_to_mild(x::Human)
     aux = x.vac_status > 0 ? p.fmild*p.red_risk_perc : p.fmild
 
     if x.iso || rand() < aux#p.fmild
-        aux_v = [MISO;MISO2;MISO3;MISO4;MISO5]
+        aux_v = [MISO;MISO2;MISO3;MISO4;MISO5;MISO6]
         x.swap = aux_v[x.strain]
         x.swap_status = MISO
         #x.swap = x.strain == 1 ? MISO : MISO2  
@@ -979,7 +992,7 @@ function move_to_miso(x::Human)
     ## transfers human h to the mild isolated infection stage for γ days
     x.health = x.swap
     x.health_status = x.swap_status
-    aux_v = [REC;REC2;REC3;REC4;REC5]
+    aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
     x.swap = aux_v[x.strain]
     x.swap_status = REC
     #x.swap = x.strain == 1 ? REC : REC2
@@ -996,7 +1009,7 @@ function move_to_infsimple(x::Human)
     x.health_status = x.swap_status
     x.tis = 0 
     x.exp = x.dur[4]
-    aux_v = [REC;REC2;REC3;REC4;REC5]
+    aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
     x.swap = aux_v[x.strain]
     x.swap_status = REC
     #x.swap = x.strain == 1 ? REC : REC2
@@ -1009,7 +1022,7 @@ function move_to_inf(x::Human)
  
     # h = prob of hospital, c = prob of icu AFTER hospital    
    
-    if x.strain == 1 || x.strain == 3 || x.strain == 5
+    if x.strain == 1 || x.strain == 3 || x.strain == 5 || x.strain == 6
         h = x.comorbidity == 1 ? 1.0 : 0.108 #0.376
         c = x.comorbidity == 1 ? 0.396 : 0.25
 
@@ -1040,7 +1053,7 @@ function move_to_inf(x::Human)
             c = x.comorbidity == 1 ? 0.396*1.60 : 0.25*1.60
         end
     else
-        error("no strain")
+        error("no strain in movetoinf")
         
     end
     
@@ -1066,12 +1079,12 @@ function move_to_inf(x::Human)
     if rand() < h     # going to hospital or ICU but will spend delta time transmissing the disease with full contacts 
         x.exp = time_to_hospital
         if rand() < c
-            aux_v = [ICU;ICU2;ICU3;ICU4;ICU5]
+            aux_v = [ICU;ICU2;ICU3;ICU4;ICU5;ICU6]
             x.swap = aux_v[x.strain]
             x.swap_status = ICU
             #x.swap = x.strain == 1 ? ICU : ICU2
         else
-            aux_v = [HOS;HOS2;HOS3;HOS4;HOS5]
+            aux_v = [HOS;HOS2;HOS3;HOS4;HOS5;HOS6]
             x.swap = aux_v[x.strain]
             x.swap_status = HOS
             #x.swap = x.strain == 1 ? HOS : HOS2
@@ -1082,19 +1095,19 @@ function move_to_inf(x::Human)
         
         if x.iso || rand() < p.fsevere 
             x.exp = 1  ## 1 day isolation for severe cases 
-            aux_v = [IISO;IISO2;IISO3;IISO4;IISO5]
+            aux_v = [IISO;IISO2;IISO3;IISO4;IISO5;IISO6]
             x.swap = aux_v[x.strain]
             x.swap_status = IISO
             #x.swap = x.strain == 1 ? IISO : IISO2
         else
             if rand() < mh[gg]*aux
                 x.exp = x.dur[4] 
-                aux_v = [DED;DED2;DED3;DED4;DED5]
+                aux_v = [DED;DED2;DED3;DED4;DED5;DED6]
                 x.swap = aux_v[x.strain]
                 x.swap_status = DED
             else 
                 x.exp = x.dur[4]  
-                aux_v = [REC;REC2;REC3;REC4;REC5]
+                aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
                 x.swap = aux_v[x.strain]
                 x.swap_status = REC
             end
@@ -1118,12 +1131,12 @@ function move_to_iiso(x::Human)
 
     if rand() < mh[gg]*aux
         x.exp = x.dur[4] 
-        aux_v = [DED;DED2;DED3;DED4;DED5]
+        aux_v = [DED;DED2;DED3;DED4;DED5;DED6]
         x.swap = aux_v[x.strain]
         x.swap_status = DED
     else 
         x.exp = x.dur[4]  
-        aux_v = [REC;REC2;REC3;REC4;REC5]
+        aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
         x.swap = aux_v[x.strain]
         x.swap_status = REC
     end
@@ -1140,7 +1153,7 @@ function move_to_hospicu(x::Human)
     g = findfirst(y-> y >= x.age,age_thres) =#
     aux = [0:4, 5:19, 20:44, 45:54, 55:64, 65:74, 75:84, 85:99]
    
-    if x.strain == 1 || x.strain == 3 || x.strain == 5
+    if x.strain == 1 || x.strain == 3 || x.strain == 5 || x.strain == 6
 
         mh = [0.001, 0.001, 0.0015, 0.0065, 0.01, 0.02, 0.0735, 0.38]
         mc = [0.002,0.002,0.0022, 0.008, 0.022, 0.04, 0.08, 0.4]
@@ -1173,13 +1186,13 @@ function move_to_hospicu(x::Human)
         x.hospicu = 1 
         if rand() < mh[gg] ## person will die in the hospital 
             x.exp = muH 
-            aux_v = [DED;DED2;DED3;DED4;DED5]
+            aux_v = [DED;DED2;DED3;DED4;DED5;DED6]
             x.swap = aux_v[x.strain]
             x.swap_status = DED
             #x.swap = x.strain == 1 ? DED : DED2
         else 
             x.exp = psiH 
-            aux_v = [REC;REC2;REC3;REC4;REC5]
+            aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
             x.swap = aux_v[x.strain]
             x.swap_status = REC
             #x.swap = x.strain == 1 ? REC : REC2
@@ -1189,13 +1202,13 @@ function move_to_hospicu(x::Human)
                 
         if rand() < mc[gg] ## person will die in the ICU 
             x.exp = muC
-            aux_v = [DED;DED2;DED3;DED4;DED5]
+            aux_v = [DED;DED2;DED3;DED4;DED5;DED6]
             x.swap = aux_v[x.strain]
             x.swap_status = DED
             #x.swap = x.strain == 1 ? DED : DED2
         else 
             x.exp = psiC
-            aux_v = [REC;REC2;REC3;REC4;REC5]
+            aux_v = [REC;REC2;REC3;REC4;REC5;REC6]
             x.swap = aux_v[x.strain]
             x.swap_status = REC
             #x.swap = x.strain == 1 ? REC : REC2
@@ -1300,6 +1313,18 @@ end
 
     elseif xhealth == PRE5
         bf = bf*p.fifth_strain_trans
+
+    elseif xhealth == ASYMP6
+        bf = bf*p.frelasymp*p.sixth_strain_trans #0.11
+
+    elseif xhealth == MILD6 || xhealth == MISO6
+        bf = bf * 0.44*p.sixth_strain_trans
+
+    elseif xhealth == INF6 || xhealth == IISO6
+        bf = bf * 0.89*p.sixth_strain_trans
+
+    elseif xhealth == PRE6
+        bf = bf*p.sixth_strain_trans
     end
     return bf
 end
@@ -1358,7 +1383,7 @@ function dyntrans(sys_time, grps,sim)
                     if y.health == SUS && y.swap == UNDEF
                         aux = y.vac_status*y.protected > 0 ? p.vac_efficacy_inf[x.strain][y.vac_status][y.protected] : 0.0
                         adj_beta = beta*(1-aux)
-                    elseif (x.strain in (3,4) && y.health in (REC, REC2, REC5) && y.swap == UNDEF)
+                    elseif (x.strain in (3,4,6) && y.health in (REC, REC2, REC5) && y.swap == UNDEF)
                         adj_beta = beta*(p.reduction_recovered) #0.21
                     end
 
@@ -1368,7 +1393,7 @@ function dyntrans(sys_time, grps,sim)
                         y.sickfrom = xhealth ## stores the infector's status to the infectee's sickfrom
                         y.sickby = x.idx
                         y.strain = x.strain       
-                        aux_v = [LAT;LAT2;LAT3;LAT4;LAT5]
+                        aux_v = [LAT;LAT2;LAT3;LAT4;LAT5;LAT6]
                         y.swap = aux_v[y.strain]
                         y.swap_status = LAT
                         #y.swap = y.strain == 1 ? LAT : LAT2
@@ -1466,8 +1491,8 @@ function _negative_binomials_15ag()
 end
 
 const vaccination_days = days_vac_f()
-const vac_rate_1 = vaccination_rate_1()
-const vac_rate_2 = vaccination_rate_2()
+#const vac_rate_1 = vaccination_rate_1()
+#const vac_rate_2 = vaccination_rate_2()
 ## references: 
 # critical care capacity in Canada https://www.ncbi.nlm.nih.gov/pubmed/25888116
 end # module end
