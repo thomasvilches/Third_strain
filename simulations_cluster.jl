@@ -47,8 +47,8 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
     ag4 = vcat([cdr[i].g4 for i = 1:nsims]...)
     ag5 = vcat([cdr[i].g5 for i = 1:nsims]...)
     ag6 = vcat([cdr[i].g6 for i = 1:nsims]...)
-    mydfs = Dict("all" => allag, "ag1" => ag1, "ag2" => ag2, "ag3" => ag3, "ag4" => ag4, "ag5" => ag5, "ag6" => ag6)
-    #mydfs = Dict("all" => allag)
+    #mydfs = Dict("all" => allag, "ag1" => ag1, "ag2" => ag2, "ag3" => ag3, "ag4" => ag4, "ag5" => ag5, "ag6" => ag6)
+    mydfs = Dict("all" => allag)
     
     ## save at the simulation and time level
     ## to ignore for now: miso, iiso, mild 
