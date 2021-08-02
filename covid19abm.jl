@@ -54,7 +54,7 @@ end
     calibration::Bool = false
     calibration2::Bool = false 
     start_several_inf::Bool = true
-    modeltime::Int64 = 318
+    modeltime::Int64 = 332
     initialinf::Int64 = 20
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     τmild::Int64 = 0 ## days before they self-isolate for mild cases
@@ -158,6 +158,11 @@ end
     status_relax::Int16 = 2
     relax_after::Int64 = 1
 
+    day_inital_vac::Int64 = 107 ###this must match to the matrices in matrice code
+    day_final_vac::Int64 = 332
+    vac_limiar::Float64 = 0.74
+    α::Float64 = 1.0
+
     scenario::Symbol = :statuscuo
     time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
@@ -240,10 +245,13 @@ function runsim(simnum, ip::ModelParameters)
         end
     end
 
+    coverage1 = length(findall(x-> x.age >= 18 && x.vac_status >= 1,humans))/length(findall(x-> x.age >= 18,humans))
+    coverage2 = length(findall(x-> x.age >= 18 && x.vac_status == 2,humans))/length(findall(x-> x.age >= 18,humans))
+
     return (a=all, g1=ag1, g2=ag2, g3=ag3, g4=ag4, g5=ag5,g6=ag6,   
     iniiso = ct_data.totalisolated,
     R01 = R01,
-    R02 = R02)
+    R02 = R02, cov1 = coverage1,cov2 = coverage2)
 end
 export runsim
 
@@ -266,17 +274,13 @@ function main(ip::ModelParameters,sim::Int64)
     #h_init::Int64 = 0
     # insert initial infected agents into the model
     # and setup the right swap function. 
-    if p.start_several_inf
-        N = herd_immu_dist_4(sim,1)
-        if p.initialinf > 0
-            insert_infected(PRE, p.initialinf, 4, 1)[1]
-        end
+   
+    N = herd_immu_dist_4(sim,1)
+    if p.initialinf > 0
+        insert_infected(PRE, p.initialinf, 4, 1)[1]
+    end
         #findall(x->x.health in (MILD,INF,LAT,PRE,ASYMP),humans)
-    else
-        #applying_vac(sim)
-        herd_immu_dist_4(sim,1)
-        insert_infected(PRE, 1, 4,1)[1]
-    end    
+   
     h_init1 = findall(x->x.health  in (LAT,MILD,MISO,INF,PRE,ASYMP),humans)
     h_init1 = [h_init1]
     h_init2 = []
@@ -339,7 +343,8 @@ function main(ip::ModelParameters,sim::Int64)
         end
         time_vac += 1
         time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1,vac_rate_1,vac_rate_2)
-       
+        
+        println([time_vac length(findall(x-> x.vac_status == 2 && x.age >= 18,humans))])
        
         _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
         dyntrans(st, grps,sim)
@@ -452,7 +457,7 @@ function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64,vac
     end
 
     t = sum(vac_rate_1[time_pos,:]+vac_rate_2[time_pos,:])
-
+    println("Total $time_pos $remaining_doses $total_given $t")
     if total_given > t
         error("vaccination")
     end

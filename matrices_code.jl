@@ -1124,9 +1124,13 @@ function vaccination_rate_1()
         ]
     end
 
+    
 
     if p.scenario == :statuscuo
         v = abs.(v)
+    elseif p.scenario == :fast
+        v = abs.(v)
+        v = Int.(round.(p.α.*v))
     elseif p.scenario == :half
         v = Int.(round.(abs.(v/2)))
     else
@@ -2258,6 +2262,9 @@ function vaccination_rate_2()
 
     if p.scenario == :statuscuo
         v = abs.(v)
+    elseif p.scenario == :fast
+        v = abs.(v)
+        v = Int.(round.(p.α.*v))
     elseif p.scenario == :half
         v = Int.(round.(abs.(v/2)))
     else

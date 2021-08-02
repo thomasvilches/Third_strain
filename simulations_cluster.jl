@@ -79,9 +79,12 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
     R02 = [cdr[i].R02 for i=1:nsims]
     writedlm(string(folderprefix,"/R01.dat"),R01)
     writedlm(string(folderprefix,"/R02.dat"),R02)
+
+    cov1 = [cdr[i].cov1 for i=1:nsims]
+    cov2 = [cdr[i].cov2 for i=1:nsims]
     
     writedlm(string(folderprefix,"/init_iso.dat"),[cdr[i].iniiso for i=1:nsims])
-
+    writedlm(string(folderprefix,"/cov.dat"),[cov1 cov2])
     return mydfs
 end
 
@@ -102,7 +105,7 @@ end
 
 
 
-function run_param_scen_cal(b::Float64,province::String="us",h_i::Int64 = 0,ic1::Int64=1,ic2::Int64=1,ic3::Int64=1,ic4::Int64=1,ic5::Int64=1,ic6::Int64=1,when2::Int64=1,when3::Int64 = 1,when4::Int64=1,when5::Int64=1,when6::Int64=1,red::Float64 = 0.0,index::Int64 = 0,dosis::Int64=3,ta::Int64 = 999,rc=[0.0],dc=[0],mt::Int64=500,vac::Bool=true,nsims::Int64=500)
+function run_param_scen_cal(b::Float64,province::String="us",h_i::Int64 = 0,ic1::Int64=1,ic2::Int64=1,ic3::Int64=1,ic4::Int64=1,ic5::Int64=1,ic6::Int64=1,when2::Int64=1,when3::Int64 = 1,when4::Int64=1,when5::Int64=1,when6::Int64=1,red::Float64 = 0.0,index::Int64 = 0,dosis::Int64=3,ta::Int64 = 999,rc=[0.0],dc=[0],mt::Int64=500,vac::Bool=true,scen::String="statuscuo",alpha::Float64 = 1.0,nsims::Int64=500)
     
     
     #b = bd[h_i]
@@ -112,7 +115,7 @@ function run_param_scen_cal(b::Float64,province::String="us",h_i::Int64 = 0,ic1:
     time_sec_strain = $when2,time_third_strain = $when3,time_fourth_strain = $when4,time_fifth_strain = $when5,time_sixth_strain = $when6,
     strain_ef_red3 = $red,strain_ef_red4 = $red,
     status_relax = $dosis, relax_after = $ta,file_index = $index,
-    modeltime=$mt, prov = Symbol($province),
+    modeltime=$mt, prov = Symbol($province), scenario = Symbol($scen), α = $alpha,
     time_change_contact = $dc,
     change_rate_values = $rc)
 
