@@ -270,6 +270,7 @@ function main(ip::ModelParameters,sim::Int64)
     
     vac_rate_1::Matrix{Int64} = vaccination_rate_1()
     vac_rate_2::Matrix{Int64} = vaccination_rate_2()
+    vaccination_days::Vector{Int64} = days_vac_f(size(vac_rate_1,1))
 
     #h_init::Int64 = 0
     # insert initial infected agents into the model
@@ -647,6 +648,10 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 ## initialization functions 
 function get_province_ag(prov) 
     ret = @match prov begin 
+        :texas => Distributions.Categorical(@SVector [0.068661166046309,0.214502673672857,0.416443080311993,0.171608270843711,0.128784809125131])
+        :alabama => Distributions.Categorical(@SVector [0.06003383515001,0.188057558505339,0.381706584597563,0.196878559548538,0.173323462198551])
+        :louisiana => Distributions.Categorical(@SVector [0.064848861876865,0.193984934587336,0.391711484742064,0.190053807503624,0.159400911290111])
+        :vermont => Distributions.Categorical(@SVector [0.04654408971953,0.1688683614615,0.366096197208605,0.218104806334727,0.200386545275638])
         :missouri => Distributions.Categorical(@SVector [0.059973004978633,0.188875698419599,0.382552593692341,0.195556021186725,0.173042681722702])
         :georgia => Distributions.Categorical(@SVector [0.061838545944718,0.202038008658033,0.40539884301492,0.18785057353371,0.14287402884862])
         :florida => Distributions.Categorical(@SVector [0.053066205252444,0.166443652792657,0.372408508401048,0.198686342048047,0.209395291505804])
@@ -1498,7 +1503,7 @@ function _negative_binomials_15ag()
     return nbinoms    
 end
 
-const vaccination_days = days_vac_f()
+#const vaccination_days = days_vac_f()
 #const vac_rate_1 = vaccination_rate_1()
 #const vac_rate_2 = vaccination_rate_2()
 ## references: 
