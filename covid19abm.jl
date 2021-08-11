@@ -647,7 +647,11 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 
 ## initialization functions 
 function get_province_ag(prov) 
-    ret = @match prov begin 
+    ret = @match prov begin
+        :oklahoma => Distributions.Categorical(@SVector [0.064577930947687,0.202923397720125,0.390831269675719,0.181157759306298,0.160509642350171])
+        :maryland => Distributions.Categorical(@SVector [0.059867045559805,0.186543780021437,0.391742698918897,0.203155310899684,0.158691164600177])
+        :massachusetts => Distributions.Categorical(@SVector [0.051847928103912,0.174228288330088,0.400024925632967,0.204246120748877,0.169652737184155])
+        :newyork => Distributions.Categorical(@SVector [0.057932889510563,0.174466515410726,0.399115102885276,0.199048852803865,0.16943663938957])
         :texas => Distributions.Categorical(@SVector [0.068661166046309,0.214502673672857,0.416443080311993,0.171608270843711,0.128784809125131])
         :alabama => Distributions.Categorical(@SVector [0.06003383515001,0.188057558505339,0.381706584597563,0.196878559548538,0.173323462198551])
         :louisiana => Distributions.Categorical(@SVector [0.064848861876865,0.193984934587336,0.391711484742064,0.190053807503624,0.159400911290111])
@@ -658,7 +662,7 @@ function get_province_ag(prov)
         :mississippi => Distributions.Categorical(@SVector [0.061649467146974,0.200597819531213,0.384003287469814,0.190218298882213,0.163531126969785])
         :arkansas => Distributions.Categorical(@SVector [0.062450709191187,0.195660155530313,0.380966424592187,0.187325618231005,0.173597092455309])
         :usa => Distributions.Categorical(@SVector [0.059444636404977,0.188450296592341,0.396101793107413,0.189694011721906,0.166309262173363])
-        :newyork   => Distributions.Categorical(@SVector [0.064000, 0.163000, 0.448000, 0.181000, 0.144000])
+        :newyorkcity   => Distributions.Categorical(@SVector [0.064000, 0.163000, 0.448000, 0.181000, 0.144000])
         _ => error("shame for not knowing your canadian provinces and territories")
     end       
     return ret  
