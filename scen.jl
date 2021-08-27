@@ -99,3 +99,9 @@ rc = [1.0;map(y->1.0+(0.075/6)*y,1:6);map(y->1.075-(0.132/11)*y,1:11);map(y->0.9
 run_param_scen_cal(0.097,"southcarolina",3,68,1,1,1,1,1,164,177,248,149,257,0.2,1,2,14,rc,dc,334,true)
 run_param_scen_cal(0.097,"southcarolina",3,68,1,1,1,1,1,164,177,248,149,257,0.2,2,2,14,rc,dc,334,false)
 run_param_scen_cal(0.097,"southcarolina",3,68,1,1,1,1,1,164,177,248,149,257,0.2,3,2,14,rc,dc,334,true,"fast",1.48)
+
+
+
+dc = [1]
+rc = [1.0]
+run_param_scen_cal(0.097,"northcarolina",2,68,1,1,1,1,1,69,198,221,163,148,0.2,1,2,14,rc,dc,334,true)
