@@ -102,6 +102,8 @@ run_param_scen_cal(0.097,"southcarolina",3,68,1,1,1,1,1,164,177,248,149,257,0.2,
 
 
 
-dc = [1]
-rc = [1.0]
-run_param_scen_cal(0.097,"northcarolina",2,68,1,1,1,1,1,69,198,221,163,148,0.2,1,2,14,rc,dc,334,true)
+dc = [1;map(y->126+y,0:19);map(y->192+y,0:14);map(y->230+y,0:34);map(y->305+y,0:16)]
+rc = [1.0;map(y->1.0-(0.23/20)*y,1:20);map(y->0.77+(0.13/15)*y,1:15);map(y->0.9-(0.15/35)*y,1:35);map(y->0.75+(0.25/17)*y,1:17)]
+run_param_scen_cal(0.096,"northcarolina",2,68,1,1,1,1,1,69,198,221,163,148,0.2,1,2,14,rc,dc,334,true)
+run_param_scen_cal(0.096,"northcarolina",2,68,1,1,1,1,1,69,198,221,163,148,0.2,2,2,14,rc,dc,334,false)
+run_param_scen_cal(0.096,"northcarolina",2,68,1,1,1,1,1,69,198,221,163,148,0.2,3,2,14,rc,dc,334,true,"fast",1.41)
