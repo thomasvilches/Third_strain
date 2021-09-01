@@ -248,10 +248,13 @@ function runsim(simnum, ip::ModelParameters)
     coverage1 = length(findall(x-> x.age >= 18 && x.vac_status >= 1,humans))/length(findall(x-> x.age >= 18,humans))
     coverage2 = length(findall(x-> x.age >= 18 && x.vac_status == 2,humans))/length(findall(x-> x.age >= 18,humans))
 
+    coverage12 = length(findall(x-> x.vac_status >= 1,humans))/p.popsize
+    coverage22 = length(findall(x-> x.vac_status == 2,humans))/p.popsize
+
     return (a=all, g1=ag1, g2=ag2, g3=ag3, g4=ag4, g5=ag5,g6=ag6,   
     iniiso = ct_data.totalisolated,
     R01 = R01,
-    R02 = R02, cov1 = coverage1,cov2 = coverage2)
+    R02 = R02, cov1 = coverage1,cov2 = coverage2,cov12 = coverage12,cov22 = coverage22)
 end
 export runsim
 
@@ -648,6 +651,15 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 ## initialization functions 
 function get_province_ag(prov) 
     ret = @match prov begin
+        :maine => Distributions.Categorical(@SVector [0.047267097749462,0.161894849919507,0.353223301086436,0.225397481944812,0.212217269299783])
+        :connecticut => Distributions.Categorical(@SVector [0.05096644393565,0.181716647215217,0.376013207351891,0.214531396771144,0.176772304726099])
+        :oregon => Distributions.Categorical(@SVector [0.054012613873269,0.174896870051404,0.402817435036846,0.186640134271056,0.181632946767425])
+        :minnesota => Distributions.Categorical(@SVector [0.06234839436332,0.193935348973124,0.385302622582466,0.195214687766861,0.163198946314228])
+        :virginia => Distributions.Categorical(@SVector [0.059220417645371,0.185337177504965,0.400913172356596,0.195323213503479,0.159206018989589])
+        :pennsylvania => Distributions.Categorical(@SVector [0.054516841093989,0.178067486232022,0.37460593037535,0.205857386692021,0.186952355606617])
+        :illinois => Distributions.Categorical(@SVector [0.058944487931135,0.189268377449461,0.396559894588157,0.193985063393809,0.161242176637438])
+        :ohio => Distributions.Categorical(@SVector [0.059100187354031,0.187871179132696,0.377904372449547,0.200062023594631,0.175062237469095])
+        :arizona => Distributions.Categorical(@SVector [0.059047219448153,0.19355196801854,0.389072002662008,0.178539844315969,0.179788965555331])
         :kentucky => Distributions.Categorical(@SVector [0.061018342210811,0.189432843451166,0.384296702108682,0.197253245705315,0.167998866524027])
         :tennessee => Distributions.Categorical(@SVector [0.059832272541306,0.185814711998845,0.392468254579544,0.194457045610494,0.167427715269812])
         :southcarolina => Distributions.Categorical(@SVector [0.056803310496563,0.18555604370334,0.379181286822302,0.196467700478217,0.181991658499579])

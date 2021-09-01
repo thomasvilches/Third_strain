@@ -82,9 +82,11 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
 
     cov1 = [cdr[i].cov1 for i=1:nsims]
     cov2 = [cdr[i].cov2 for i=1:nsims]
+    cov12 = [cdr[i].cov12 for i=1:nsims]
+    cov22 = [cdr[i].cov22 for i=1:nsims]
     
     writedlm(string(folderprefix,"/init_iso.dat"),[cdr[i].iniiso for i=1:nsims])
-    writedlm(string(folderprefix,"/cov.dat"),[cov1 cov2])
+    writedlm(string(folderprefix,"/cov.dat"),[cov1 cov2 cov12 cov22])
     return mydfs
 end
 
@@ -92,7 +94,7 @@ end
 function create_folder(ip::cv.ModelParameters,vac="none",province="us")
     
     #RF = string("heatmap/results_prob_","$(replace(string(ip.β), "." => "_"))","_vac_","$(replace(string(ip.vaccine_ef), "." => "_"))","_herd_immu_","$(ip.herd)","_$strategy","cov_$(replace(string(ip.cov_val)))") ## 
-    main_folder = "/data/thomas-covid/states_us"
+    main_folder = "/data/thomas-covid/states_us/"
     #main_folder = "."
    
     RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.file_index)_$(province)") ##  
