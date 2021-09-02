@@ -162,6 +162,8 @@ end
     day_final_vac::Int64 = 332
     vac_limiar::Float64 = 0.74
     α::Float64 = 1.0
+    α2::Float64 = 0.0
+    α3::Float64 = 1.0
 
     scenario::Symbol = :statuscuo
     time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated

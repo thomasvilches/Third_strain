@@ -1,7 +1,7 @@
 
 function days_vac_f(l::Int64)
 
-    v = [i for i in 107:(107+(l-2))]
+    v = [i for i in p.day_inital_vac:(p.day_inital_vac+(l-2))]
     
     return v
 end
@@ -452,6 +452,14 @@ function vaccination_rate_1()
             4	3	10	25	17	31	19	13;
             5	4	14	34	24	44	27	18;
             0	0	1	2	1	2	1	1;
+            12	8	30	74	51	93	57	39;
+            0	0	0	1	1	1	1	1;
+            0	0	0	0	0	0	0	0;
+            0	0	0	0	0	0	0	0;
+            21	13	52	126	88	160	97	67;
+            0	0	0	0	0	1	0	0;
+            16	10	41	99	69	125	76	52;
+            0	0	1	1	1	2	1	1
         ]
     elseif p.prov == :georgia
         v= [0 0 0 0 0 0 0 0;
@@ -674,7 +682,15 @@ function vaccination_rate_1()
             3	2	9	21	15	26	16	11;
             4	2	9	23	16	29	18	12;
             4	3	10	25	17	31	19	13;
-            5	3	12	29	20	37	22	15
+            5	3	12	29	20	37	22	15;
+            4	2	10	23	16	29	18	12
+            2	1	6	14	10	18	11	8;
+            5	3	12	29	20	37	22	15;
+            5	3	14	33	23	41	25	17;
+            6	4	14	35	24	44	27	18;
+            6	4	15	35	25	44	27	19;
+            7	4	17	40	28	51	31	21;
+            4	3	11	26	18	33	20	14
         ]
     elseif p.prov == :missouri
         v = [0 0 0 0 0 0 0 0;
@@ -6234,6 +6250,27 @@ function vaccination_rate_1()
         0 0 0 0 0 0 0 0]
     end
 
+    rp = v[end-6:end,:]
+    l2 = p.modeltime-(p.day_inital_vac+size(v,1)-2)
+    if l2 > 0
+        v2 = repeat(rp,Int(ceil(l2/7)))
+        v2 = Int.(p.α3.*v2[1:l2,:])
+    
+        for i = 1:l2
+            aux = sum(v2[i,:])
+            aux = Int(round(p.α2*aux))
+            aux_v = sample(1:size(v2,2),aux)
+    
+            for j in aux_v
+                v2[i,j] = v2[i,j] + 1
+            end
+        end
+    else
+        v2 = [0 0 0 0 0 0 0 0]
+    end
+
+    v = [v;v2]
+
     return v
 end
 
@@ -6683,6 +6720,14 @@ function vaccination_rate_2()
             3	2	9	22	16	29	18	12;
             1	1	4	10	7	14	8	6;
             2	1	6	14	10	19	12	8;
+            0	0	0	1	1	1	1	1;
+            4	3	12	29	21	38	24	16;
+            0	0	0	1	1	2	1	1;
+            0	0	0	0	0	0	0	0;
+            0	0	0	0	0	0	0	0;
+            5	4	14	35	25	46	28	19;
+            0	0	0	1	1	1	1	1;
+            4	3	11	27	19	35	21	15;
             0	0	0	1	1	1	1	1
         ]
     elseif p.prov == :georgia
@@ -6906,7 +6951,15 @@ function vaccination_rate_2()
             2	1	5	13	9	17	10	7;
             2	1	5	13	10	18	11	8;
             2	1	5	12	9	16	10	7;
-            2	1	6	14	10	19	12	8
+            2	1	6	14	10	19	12	8;
+            2	1	4	11	8	14	9	6;
+            1	0	1	4	3	5	3	2;
+            2	1	5	12	9	16	10	7;
+            2	1	5	13	9	17	11	7;
+            2	1	6	14	10	19	11	8;
+            2	1	5	13	9	17	11	7;
+            2	2	6	16	11	21	13	9;
+            2	1	4	11	7	14	8	6
         ]
     elseif p.prov == :missouri
         v = [0 0 0 0 0 0 0 0;
@@ -12463,5 +12516,27 @@ function vaccination_rate_2()
         v = [0 0 0 0 0 0 0 0;
         0 0 0 0 0 0 0 0]
     end
+
+    rp = v[end-6:end,:]
+    l2 = p.modeltime-(p.day_inital_vac+size(v,1)-2)
+    if l2 > 0
+        v2 = repeat(rp,Int(ceil(l2/7)))
+        v2 = Int.(p.α3.*v2[1:l2,:])
+    
+        for i = 1:l2
+            aux = sum(v2[i,:])
+            aux = Int(round(p.α2*aux))
+            aux_v = sample(1:size(v2,2),aux)
+    
+            for j in aux_v
+                v2[i,j] = v2[i,j] + 1
+            end
+        end
+    else
+        v2 = [0 0 0 0 0 0 0 0]
+    end
+
+    v = [v;v2]
+
     return v
 end
