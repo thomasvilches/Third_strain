@@ -12833,11 +12833,12 @@ function vaccination_rate_2()
         0 0 0 0 0 0 0 0]
     end
 
-    rp = v[end-6:end,:]
+    
+    rp = Int.(round.(mean(v[end-6:end,:],dims=1)))
     l2 = p.modeltime-(p.day_inital_vac+size(v,1)-2)
     if l2 > 0
-        v2 = repeat(rp,Int(ceil(l2/7)))
-        v2 = Int.(p.α3.*v2[1:l2,:])
+        v2 = repeat(rp,l2)
+        v2 = Int.(p.α3.*v2)
     
         for i = 1:l2
             aux = sum(v2[i,:])
