@@ -273,8 +273,8 @@ function main(ip::ModelParameters,sim::Int64)
     hmatrix = zeros(Int16, p.popsize, p.modeltime)
     initialize() # initialize population
     
-    vac_rate_1::Matrix{Int64} = vaccination_rate_1()
-    vac_rate_2::Matrix{Int64} = vaccination_rate_2()
+    vac_rate_1::Matrix{Int64} = vaccination_rate_1(sim)
+    vac_rate_2::Matrix{Int64} = vaccination_rate_2(sim)
     vaccination_days::Vector{Int64} = days_vac_f(size(vac_rate_1,1))
 
     #h_init::Int64 = 0

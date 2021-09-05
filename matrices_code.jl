@@ -6,7 +6,7 @@ function days_vac_f(l::Int64)
     return v
 end
 
-function vaccination_rate_1()
+function vaccination_rate_1(sim::Int64)
     if p.prov == :arkansas
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0   0;
@@ -1458,7 +1458,45 @@ function vaccination_rate_1()
             1	1	3	6	5	8	5	3;
             1	1	2	5	4	7	4	3;
             2	1	4	10	7	13	8	6;
-            2	1	5	11	8	14	9	6
+            2	1	5	11	8	14	9	6;
+            2	1	5	12	8	15	9	6
+            2	1	5	12	8	15	9	6;
+            2	1	6	14	10	18	11	7;
+            1	1	3	8	5	10	6	4;
+            1	1	2	5	4	6	4	3;
+            2	1	5	12	8	15	9	6;
+            2	2	6	15	10	19	11	8;
+            2	1	5	13	9	17	10	7;
+            2	1	6	14	10	17	10	7;
+            2	2	6	15	10	19	11	8;
+            2	1	4	10	7	13	8	5;
+            1	1	3	8	6	10	6	4;
+            2	2	6	14	10	18	11	7;
+            3	2	7	16	11	20	12	8;
+            3	2	6	15	10	19	11	8;
+            3	2	7	17	12	21	13	9;
+            3	2	6	14	10	18	11	7;
+            2	1	4	10	7	13	8	5;
+            1	1	2	6	4	7	4	3;
+            4	2	9	21	15	26	16	11;
+            7	4	15	37	25	45	27	19;
+            3	2	8	18	13	23	13	9;
+            3	2	8	18	13	23	14	9;
+            3	2	7	16	11	19	12	8;
+            2	1	4	9	7	12	7	5;
+            1	1	3	7	5	9	5	4;
+            3	2	7	16	11	20	12	8;
+            4	2	9	20	14	25	15	10;
+            3	2	7	17	12	21	12	8;
+            4	3	9	22	15	27	16	11;
+            3	2	7	16	11	20	12	8;
+            2	1	4	9	6	11	7	5;
+            1	1	3	7	5	8	5	3;
+            3	2	6	14	10	17	10	7;
+            4	2	8	19	13	23	14	9;
+            3	2	7	17	12	21	13	9;
+            3	2	7	16	11	19	11	8;
+            3	2	6	15	10	18	11	7
         ]
     elseif p.prov == :alabama
         v = [0 0 0 0 0 0 0 0;
@@ -6394,7 +6432,7 @@ function vaccination_rate_1()
         ]
     end
 
-    
+    rng = MersenneTwister(279*sim)
 
     if p.scenario == :statuscuo
         v = abs.(v)
@@ -6417,7 +6455,7 @@ function vaccination_rate_1()
         for i = 1:l2
             aux = sum(v2[i,:])
             aux = Int(round(p.α2*aux))
-            aux_v = sample(1:size(v2,2),aux)
+            aux_v = sample(rng,1:size(v2,2),aux)
     
             for j in aux_v
                 v2[i,j] = v2[i,j] + 1
@@ -6432,7 +6470,7 @@ function vaccination_rate_1()
     return v
 end
 
-function vaccination_rate_2()
+function vaccination_rate_2(sim::Int64)
     
     if p.prov == :arkansas
         v = [0 0 0 0 0 0 0 0;
@@ -7884,7 +7922,45 @@ function vaccination_rate_2()
             1	1	3	8	6	10	6	4;
             1	0	2	4	3	6	4	2;
             1	1	4	11	8	14	9	6;
-            1	1	4	10	7	13	8	5
+            1	1	4	10	7	13	8	5;
+            1	1	4	11	7	14	9	6;
+            2	1	4	11	8	14	9	6;
+            2	1	5	11	8	15	9	6;
+            1	1	2	6	4	7	5	3;
+            1	0	2	5	3	6	4	3;
+            1	1	4	10	7	13	8	5;
+            1	1	4	10	7	13	8	5;
+            2	1	4	11	8	14	9	6;
+            1	1	4	10	7	13	8	5;
+            2	1	4	11	8	14	9	6;
+            1	1	2	6	4	7	4	3;
+            1	1	2	5	4	7	4	3;
+            1	1	3	8	6	11	7	4;
+            2	1	5	12	8	16	10	7;
+            2	1	5	13	9	17	10	7;
+            2	1	4	10	7	13	8	5;
+            2	1	5	11	8	15	9	6;
+            1	1	3	7	5	9	6	4;
+            1	0	2	4	3	5	3	2;
+            2	2	6	15	10	19	12	8;
+            4	3	10	25	18	33	20	14;
+            2	1	4	11	8	14	9	6;
+            2	1	5	13	9	17	10	7;
+            2	1	5	11	8	15	9	6;
+            1	0	2	4	3	5	3	2;
+            1	1	2	6	4	7	4	3;
+            2	1	5	12	9	16	10	7;
+            2	1	6	14	10	18	11	7;
+            2	2	6	15	10	19	12	8;
+            3	2	7	16	11	21	13	9;
+            2	1	5	13	9	17	10	7;
+            1	1	3	7	5	9	6	4;
+            1	1	2	5	4	6	4	3;
+            2	1	5	12	9	16	10	7;
+            3	2	7	16	11	21	13	9;
+            2	1	5	12	8	15	9	6;
+            2	1	5	12	8	15	9	6;
+            2	1	5	13	9	16	10	7
         ]
     elseif p.prov == :alabama
         v = [0 0 0 0 0 0 0 0;
@@ -12821,6 +12897,7 @@ function vaccination_rate_2()
         ]
     end
 
+    rng = MersenneTwister(279*sim)
     if p.scenario == :statuscuo
         v = abs.(v)
     elseif p.scenario == :fast
@@ -12843,7 +12920,7 @@ function vaccination_rate_2()
         for i = 1:l2
             aux = sum(v2[i,:])
             aux = Int(round(p.α2*aux))
-            aux_v = sample(1:size(v2,2),aux)
+            aux_v = sample(rng,1:size(v2,2),aux)
     
             for j in aux_v
                 v2[i,j] = v2[i,j] + 1
