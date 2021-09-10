@@ -49,7 +49,7 @@ to run the scenarios. The arguments are
 One can find the state of interest in "scen.jl".
 
 ```
-include("scen.jl")
+include("scen_TXFL.jl")
 ```
 
 ## Model output
