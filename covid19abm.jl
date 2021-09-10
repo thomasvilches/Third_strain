@@ -964,7 +964,10 @@ function move_to_pre(x::Human)
     if x.strain == 1 || x.strain == 3 || x.strain == 5 || x.strain == 6
         θ = (0.95, 0.9, 0.85, 0.6, 0.2)  # percentage of sick individuals going to mild infection stage
     elseif x.strain == 2 || x.strain == 4
-        θ = (0.89, 0.78, 0.67, 0.48, 0.04) 
+        θ = (0.89, 0.78, 0.67, 0.48, 0.04)
+            if x.strain == 4
+                θ = map(y-> max(0,1-(1-y)*1.88),θ)
+            end
     else
         error("no strain in move to pre")
     end  # percentage of sick individuals going to mild infection stage
@@ -1089,6 +1092,9 @@ function move_to_inf(x::Human)
             h = x.comorbidity == 1 ? 1.0 : 0.108*1.60 #0.376
             c = x.comorbidity == 1 ? 0.396*1.60 : 0.25*1.60
         end
+        if x.strain == 4
+            h = h*2.26
+        end
     else
         error("no strain in movetoinf")
         
@@ -1165,6 +1171,7 @@ function move_to_iiso(x::Human)
     
     mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381] # death rate for severe cases.
     aux = (p.mortality_inc^Int(x.strain==2 || x.strain == 4))
+    aux = x.strain == 4 ? aux*3.0 : aux
 
     if rand() < mh[gg]*aux
         x.exp = x.dur[4] 
@@ -1199,6 +1206,10 @@ function move_to_hospicu(x::Human)
     
         mh = [0.0016, 0.0016, 0.0025, 0.0107, 0.02, 0.038, 0.15, 0.66]
         mc = [0.0033, 0.0033, 0.0036, 0.0131, 0.022, 0.04, 0.2, 0.70]
+        if x.strain == 4
+            mh = 3*mh
+            mc = 3*mc
+        end
 
     else
       
