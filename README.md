@@ -46,7 +46,7 @@ to run the scenarios. The arguments are
 - type: either "baselone" or "fast". "fast" makes multiplies the vaccination rate by "proportion".
 - proportion: if "fast", the vaccination rate is multiplied by this number.
 
-One can find the state of interest in "scen.jl".
+One can find the state of interest in "scen_TXnFL.jl".
 
 ```
 include("scen_TXFL.jl")
