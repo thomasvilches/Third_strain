@@ -1089,6 +1089,7 @@ function move_to_inf(x::Human)
             h = x.comorbidity == 1 ? 1.0 : 0.108*1.60 #0.376
             c = x.comorbidity == 1 ? 0.396*1.60 : 0.25*1.60
         end
+
     else
         error("no strain in movetoinf")
         
