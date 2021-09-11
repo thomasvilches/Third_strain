@@ -135,7 +135,7 @@ end
     reduction_recovered_4::Float64 = 0.21
     strain_ef_red3::Float64 = 0.8 #reduction in efficacy against third strain
     strain_ef_red4::Float64 = 0.8 #reduction in efficacy against third strain
-    mortality_inc::Float64 = 1.64 #The mortality increase when infected by strain 2
+    mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
     #=------------ Vaccine Efficacy ----------------------------=#
     days_to_protection::Array{Array{Int64,1},1} = [[14],[0;7]]
@@ -1061,35 +1061,35 @@ function move_to_inf(x::Human)
     ## for swap, check if person will be hospitalized, selfiso, die, or recover
  
     # h = prob of hospital, c = prob of icu AFTER hospital    
-   
+    comh = 0.98
     if x.strain == 1 || x.strain == 3 || x.strain == 5 || x.strain == 6
-        h = x.comorbidity == 1 ? 1.0 : 0.108 #0.376
+        h = x.comorbidity == 1 ? comh : 0.04 #0.376
         c = x.comorbidity == 1 ? 0.396 : 0.25
 
     elseif x.strain == 2 || x.strain == 4
         if x.age <  20
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.07 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.07*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.07 : 0.25*1.07
         elseif x.age >= 20 && x.age < 30
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.29 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.29*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.29 : 0.25*1.29
         elseif  x.age >= 30 && x.age < 40
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.45 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.45*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.45 : 0.25*1.45
         elseif  x.age >= 40 && x.age < 50
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.61 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.61*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.61 : 0.25*1.61
         elseif  x.age >= 50 && x.age < 60
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.58 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.58*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.58 : 0.25*1.58
         elseif  x.age >= 60 && x.age < 70
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.65 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.65*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.65 : 0.25*1.65
         elseif  x.age >= 70 && x.age < 80
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.45 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.45*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.45 : 0.25*1.45
         else
-            h = x.comorbidity == 1 ? 1.0 : 0.108*1.60 #0.376
+            h = x.comorbidity == 1 ? comh : 0.05*1.60*1 #0.376
             c = x.comorbidity == 1 ? 0.396*1.60 : 0.25*1.60
         end
         if x.strain == 4
@@ -1135,7 +1135,7 @@ function move_to_inf(x::Human)
        
     else ## no hospital for this lucky (but severe) individual 
         aux = (p.mortality_inc^Int(x.strain==2 || x.strain == 4))
-        
+        aux = x.strain == 4 ? aux*6.0 : aux
         if x.iso || rand() < p.fsevere 
             x.exp = 1  ## 1 day isolation for severe cases 
             aux_v = [IISO;IISO2;IISO3;IISO4;IISO5;IISO6]
@@ -1171,7 +1171,7 @@ function move_to_iiso(x::Human)
     
     mh = [0.0002; 0.0015; 0.011; 0.0802; 0.381] # death rate for severe cases.
     aux = (p.mortality_inc^Int(x.strain==2 || x.strain == 4))
-    aux = x.strain == 4 ? aux*3.0 : aux
+    aux = x.strain == 4 ? aux*6.0 : aux
 
     if rand() < mh[gg]*aux
         x.exp = x.dur[4] 
@@ -1204,11 +1204,12 @@ function move_to_hospicu(x::Human)
 
     elseif x.strain == 2  || x.strain == 4
     
-        mh = [0.0016, 0.0016, 0.0025, 0.0107, 0.02, 0.038, 0.15, 0.66]
-        mc = [0.0033, 0.0033, 0.0036, 0.0131, 0.022, 0.04, 0.2, 0.70]
+        mh = 0.5*[0.0016, 0.0016, 0.0025, 0.0107, 0.02, 0.038, 0.15, 0.66]
+        mc = 0.5*[0.0033, 0.0033, 0.0036, 0.0131, 0.022, 0.04, 0.2, 0.70]
+        
         if x.strain == 4
-            mh = 3*mh
-            mc = 3*mc
+            mh = 6*mh
+            mc = 6*mc
         end
 
     else
