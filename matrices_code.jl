@@ -7789,6 +7789,8 @@ function vaccination_rate_1(sim::Int64)
             5	3	12	28	19	33	20	14;
             3	2	7	17	12	20	12	8
         ]
+    else
+        error("no state set")
     end
 
     rng = MersenneTwister(279*sim)
@@ -15613,6 +15615,8 @@ function vaccination_rate_2(sim::Int64)
             4	3	9	23	16	29	18	12;
             3	2	6	14	10	19	11	8
         ]
+    else
+        error("no state set")
     end
 
     rng = MersenneTwister(279*sim)
