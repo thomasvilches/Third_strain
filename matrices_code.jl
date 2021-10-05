@@ -6020,7 +6020,7 @@ function vaccination_rate_1(sim::Int64)
             5	3	12	28	19	34	20	14;
             5	3	11	25	17	30	18	12
         ]
-    elseif p.prov == :ohio ##
+    elseif p.prov == :ohio
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0	0;
             0	0	0	2	1	1	0	0;
@@ -7849,9 +7849,6 @@ function vaccination_rate_1(sim::Int64)
             5	3	11	27	19	33	20	13;
             5	3	11	27	19	33	20	13;
             5	3	11	26	18	31	19	13
-        ]
-    elseif p.prov == :california ###not add
-        v = [0 0 0 0 0 0 0 0;
         ]
     elseif p.prov == :newhampshire
         v = [0 0 0 0 0 0 0 0;
@@ -16261,9 +16258,6 @@ function vaccination_rate_2(sim::Int64)
             4	3	9	23	16	30	18	12;
             4	2	9	23	16	29	18	12;
             4	2	9	21	15	27	16	11
-        ]
-    elseif p.prov == :california
-        v = [0 0 0 0 0 0 0 0;
         ]
     elseif p.prov == :newhampshire
         v = [0 0 0 0 0 0 0 0;
