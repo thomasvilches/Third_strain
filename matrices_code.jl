@@ -4445,7 +4445,7 @@ function vaccination_rate_1(sim::Int64)
             7	4	16	38	26	46	27	19;
             4	3	10	23	16	28	16	11
         ]
-    elseif p.prov == :nevada ##
+    elseif p.prov == :nevada
         v = [0 0 0 0 0 0 0 0;
             0	0	0	2	1	2	0	0;
             0	0	1	6	4	5	1	0;
@@ -4706,7 +4706,7 @@ function vaccination_rate_1(sim::Int64)
             6	4	14	32	22	39	23	16;
             5	3	12	28	19	34	20	14
         ]
-    elseif p.prov == :kentucky ##
+    elseif p.prov == :kentucky 
         v = [0 0 0 0 0 0 0 0;
             0	0	0	2	1	2	0	0;
             0	0	1	10	6	8	1	0;
@@ -5756,7 +5756,7 @@ function vaccination_rate_1(sim::Int64)
     elseif p.prov == :washington###not add
         v = [0 0 0 0 0 0 0 0;
         ]
-    elseif p.prov == :newjersey###not add
+    elseif p.prov == :newjersey
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	1	1	1	0	0;
                 0	0	0	2	1	1	0	0;
@@ -6017,7 +6017,7 @@ function vaccination_rate_1(sim::Int64)
                 5	3	10	24	16	28	17	12;
                 3	2	7	17	12	21	12	8
         ]
-    elseif p.prov == :arizona##
+    elseif p.prov == :arizona
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0	0;
             0	0	0	0	0	0	0	0;
@@ -6539,7 +6539,7 @@ function vaccination_rate_1(sim::Int64)
             4	2	9	22	15	26	16	11;
             3	2	6	14	10	17	10	7
         ]
-    elseif p.prov == :illinois##
+    elseif p.prov == :illinois
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0	0;
             0	0	0	0	0	0	0	0;
@@ -7061,7 +7061,7 @@ function vaccination_rate_1(sim::Int64)
             6	3	12	29	20	35	21	14;
             4	2	8	19	13	24	14	9
         ]
-    elseif p.prov == :virginia##
+    elseif p.prov == :virginia
         v = [0 0 0 0 0 0 0 0;
             0	0	0	1	1	1	0	0;
             0	0	0	0	0	0	0	0;
@@ -7322,7 +7322,7 @@ function vaccination_rate_1(sim::Int64)
             6	4	14	32	22	39	23	16;
             5	3	11	27	18	32	19	13
         ]
-    elseif p.prov == :minnesota ##
+    elseif p.prov == :minnesota 
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0	0;
             0	0	0	0	0	0	0	0;
@@ -7583,7 +7583,7 @@ function vaccination_rate_1(sim::Int64)
             4	2	8	19	13	22	13	9;
             2	1	4	10	7	12	7	5
         ]
-    elseif p.prov == :oregon ##
+    elseif p.prov == :oregon 
         v = [0 0 0 0 0 0 0 0;
             0	0	0	0	0	0	0	0;
             0	0	0	2	1	1	0	0;
@@ -7844,7 +7844,7 @@ function vaccination_rate_1(sim::Int64)
             6	3	12	30	20	36	21	15;
             4	2	9	22	15	27	16	11
         ]
-    elseif p.prov == :maine###not add
+    elseif p.prov == :maine
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	0	0	0	0	0;
                 0	0	0	0	0	0	0	0;
@@ -8105,7 +8105,7 @@ function vaccination_rate_1(sim::Int64)
                 0	0	0	1	1	1	1	1;
                 1	1	3	7	5	8	5	3
         ]
-    elseif p.prov == :connecticut ##
+    elseif p.prov == :connecticut 
         v = [0 0 0 0 0 0 0 0;
             0	0	1	8	6	7	1	0;
             0	0	2	17	10	13	2	0;
@@ -8888,7 +8888,7 @@ function vaccination_rate_1(sim::Int64)
             5	3	12	28	19	33	20	14;
             3	2	7	17	12	20	12	8
         ]
-    elseif p.prov == :rhodeisland ###not add
+    elseif p.prov == :rhodeisland 
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	3	2	3	0	0;
                 0	0	0	0	0	0	0	0;
@@ -9149,7 +9149,7 @@ function vaccination_rate_1(sim::Int64)
                 5	3	11	25	17	30	18	12;
                 4	2	9	20	14	25	15	10
         ]
-    elseif p.prov == :delaware ###not add
+    elseif p.prov == :delaware 
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	0	0	0	0	0;
                 0	0	0	0	0	0	0	0;
@@ -18335,7 +18335,7 @@ function vaccination_rate_2(sim::Int64)
             4	3	9	23	16	29	18	12;
             3	2	6	14	10	19	11	8
         ]
-    elseif p.prov == :rhodeisland ###not add
+    elseif p.prov == :rhodeisland 
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	0	0	0	0	0;
                 0	0	0	0	0	0	0	0;
@@ -18596,7 +18596,7 @@ function vaccination_rate_2(sim::Int64)
                 3	2	8	20	14	26	16	11;
                 3	2	7	17	12	22	13	9
         ]
-    elseif p.prov == :delaware ###not add
+    elseif p.prov == :delaware 
         v = [0 0 0 0 0 0 0 0;
                 0	0	0	0	0	0	0	0;
                 0	0	0	0	0	0	0	0;
