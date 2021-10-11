@@ -9413,7 +9413,6 @@ function vaccination_rate_1(sim::Int64)
     else
         error("no state set")
     end
-
     rng = MersenneTwister(279*sim)
 
     if p.scenario == :statuscuo
