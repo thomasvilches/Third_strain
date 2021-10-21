@@ -653,6 +653,8 @@ export _collectdf, _get_incidence_and_prev, _get_column_incidence, _get_column_p
 ## initialization functions 
 function get_province_ag(prov) 
     ret = @match prov begin
+        :iowa => Distributions.Categorical(@SVector [0.062006865140869,0.196730658907726,0.375836986184142,0.190166620708891,0.175258869058373])
+        :indiana => Distributions.Categorical(@SVector [0.062139986830494,0.198557117645757,0.387121096327971,0.190906148477939,0.161275650717839])
         :washington => Distributions.Categorical(@SVector [0.059945162722575,0.18172678197842,0.413535948568155,0.18592933610492,0.15886277062593])
         :alaska => Distributions.Categorical(@SVector [0.069824822806526,0.199265937160393,0.419576376026082,0.186134824241844,0.125198039765155])
         :wyoming => Distributions.Categorical(@SVector [0.060355000958948,0.195661752128261,0.382288655554384,0.190329653620937,0.171364937737469])
