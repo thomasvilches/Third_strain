@@ -5,6 +5,9 @@ Pratha Sah *et al*
 
 - The branch NYC uses NYC specific data. You can clone the repository and use `git checkout NYC` to change the branch.
 
+- The branch us_states uses specific data for all states in US and calibrate it for all of them. You can clone the repository and use `git checkout us_states` to change the branch.
+
+- The branch rapid_vaccination uses data for US and run 2 counterfactual scenarios (no vaccination and half daily vaccination rate). You can clone the repository and use `git checkout rapid_vaccination` to change the branch.
 ## Model details:
 A stochastic, age-stratified agent-based computational model for the transmission dynamics of COVID-19. The computational model simulates autonomous agents (representing individuals in a human population) and their interactions within a constrained virtual environment. Agents follow the natural history of disease, including epidemiological stages of susceptible, infected and incubating, asymptomatic, presymptomatic, and symptomatic with either mild, severe, or critical illness, recovered, and dead.
 
