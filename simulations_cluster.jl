@@ -197,7 +197,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     
     
     #RF = string("heatmap/results_prob_","$(replace(string(ip.β), "." => "_"))","_vac_","$(replace(string(ip.vaccine_ef), "." => "_"))","_herd_immu_","$(ip.herd)","_$strategy","cov_$(replace(string(ip.cov_val)))") ## 
-    main_folder = "/data/thomas-covid/Alisons_project"
+    main_folder = "/data/thomas-covid/rapid_rollout"
     #main_folder = "."
    
     RF = string(main_folder,"/results_prob_","$(replace(string(ip.β), "." => "_"))","_herd_immu_","$(ip.herd)","_$vac","_$(ip.fourth_strain_trans)_$(ip.strain_ef_red3)_$(ip.file_index)") ##  
@@ -208,7 +208,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     return RF
 end
 
-function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,vaccine = true,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,nsims=500)
+function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,vaccine = true,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,vc=[999],vr=[1.0],mt=334,scen = "statuscuo",nsims=500)
     
     #b = bd[h_i]
     #ic = init_con[h_i]
@@ -216,7 +216,8 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_t
     herd = $(h_i),start_several_inf=true,initialinf3=$ic,
     ins_sec_strain = true,third_strain_trans=$strain3_trans,
     fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
-    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index)
+    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
+    time_change_contact = $vc, change_rate_values = $vr,modeltime = $mt,scenario = $Symbol(scen))
 
     folder = create_folder(ip,"pfizer")
 

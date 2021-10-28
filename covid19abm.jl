@@ -55,7 +55,7 @@ end
     heatmap::Bool = false
     ignore_cal::Bool = false
     start_several_inf::Bool = true
-    modeltime::Int64 = 500
+    modeltime::Int64 = 333
     initialinf::Int64 = 50
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     τmild::Int64 = 0 ## days before they self-isolate for mild cases
