@@ -126,9 +126,9 @@ end
 
     #=------------ Vaccine Efficacy ----------------------------=#
     days_to_protection::Array{Array{Int64,1},1} = [[14],[0;7]]
-    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]]] #### 50:5:80
+    vac_efficacy_inf::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.861]],[[0.295],[0.6;0.895]],[[0.46*(1-strain_ef_red3)],[0.6*(1-strain_ef_red3);0.92*(1-strain_ef_red3)]],[[0.46*(1-strain_ef_red4)],[0.6*(1-strain_ef_red4);0.92*(1-strain_ef_red4)]]] #### 50:5:80
     vac_efficacy_symp::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.536],[0.62;0.934]],[[0.332],[0.66;0.94]],[[0.332],[0.62;0.934]]] #### 50:5:80
-    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.974]]]#### 50:5:80
+    vac_efficacy_sev::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.541],[0.8;0.94]],[[0.34],[0.68;0.974]],[[0.34],[0.68;0.94]]]#### 50:5:80
    
 
     time_change::Int64 = 999## used to calibrate the model
