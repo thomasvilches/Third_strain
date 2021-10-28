@@ -1,9 +1,7 @@
 # COVID-19 Agent Based Model
-Quantifying the potential dominance of immune-evading SARS-CoV-2 variants in the United States
+COVID-19 deaths and hospitalizations averted by rapid vaccination rollout in the United States
 
-Pratha Sah *et al*
-
-- The branch NYC uses NYC specific data. You can clone the repository and use `git checkout NYC` to change the branch.
+Vilches *et al*
 
 ## Model details:
 A stochastic, age-stratified agent-based computational model for the transmission dynamics of COVID-19. The computational model simulates autonomous agents (representing individuals in a human population) and their interactions within a constrained virtual environment. Agents follow the natural history of disease, including epidemiological stages of susceptible, infected and incubating, asymptomatic, presymptomatic, and symptomatic with either mild, severe, or critical illness, recovered, and dead.
