@@ -250,7 +250,9 @@ function main(ip::ModelParameters,sim::Int64)
     
     hmatrix = zeros(Int16, p.popsize, p.modeltime)
     initialize() # initialize population
-    
+    vaccination_days::Vector{Int64} = days_vac_f()
+    vac_rate_1::Matrix{Float64} = vaccination_rate_1()
+    vac_rate_2::Matrix{Float64} = vaccination_rate_2()
      #h_init::Int64 = 0
     # insert initial infected agents into the model
     # and setup the right swap function. 
@@ -320,7 +322,7 @@ function main(ip::ModelParameters,sim::Int64)
             time_pos += 1
         end
         time_vac += 1
-        time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1)
+        time_pos > 0 && vac_time!(sim,vac_ind,time_pos+1,vac_rate_1,vac_rate_2)
        
        
         _get_model_state(st, hmatrix) ## this datacollection needs to be at the start of the for loop
@@ -361,7 +363,7 @@ function vac_selection(sim::Int64)
 end
 
 
-function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64)
+function vac_time!(sim::Int64,vac_ind::Vector{Vector{Int64}},time_pos::Int64,vac_rate_1,vac_rate_2)
     aux_states = (MILD, MISO, INF, IISO, HOS, ICU, DED,MILD2, MISO2, INF2, IISO2, HOS2, ICU2, DED2, MILD3, MISO3, INF3, IISO3, HOS3, ICU3, DED3, MILD4, MISO4, INF4, IISO4, HOS4, ICU4, DED4)
     ##first dose
     rng = MersenneTwister(123*sim)
@@ -1716,9 +1718,7 @@ function _negative_binomials_15ag()
     return nbinoms    
 end
 
-const vaccination_days = days_vac_f()
-const vac_rate_1 = vaccination_rate_1()
-const vac_rate_2 = vaccination_rate_2()
+
 ## references: 
 # critical care capacity in Canada https://www.ncbi.nlm.nih.gov/pubmed/25888116
 end # module end
