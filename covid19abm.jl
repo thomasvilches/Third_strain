@@ -251,8 +251,8 @@ function main(ip::ModelParameters,sim::Int64)
     hmatrix = zeros(Int16, p.popsize, p.modeltime)
     initialize() # initialize population
     vaccination_days::Vector{Int64} = days_vac_f()
-    vac_rate_1::Matrix{Float64} = vaccination_rate_1()
-    vac_rate_2::Matrix{Float64} = vaccination_rate_2()
+    vac_rate_1::Matrix{Int64} = vaccination_rate_1()
+    vac_rate_2::Matrix{Int64} = vaccination_rate_2()
      #h_init::Int64 = 0
     # insert initial infected agents into the model
     # and setup the right swap function. 
