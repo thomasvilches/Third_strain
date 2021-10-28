@@ -1,5 +1,7 @@
 # COVID-19 Agent Based Model
+COVID-19 Hospitalizations and Deaths Averted Under an Accelerated Vaccination Program in Ten US States
 
+Vilches *et al*
 ## Model details:
 A stochastic, age-stratified agent-based computational model for the transmission dynamics of COVID-19. The computational model simulates autonomous agents (representing individuals in a human population) and their interactions within a constrained virtual environment. Agents follow the natural history of disease, including epidemiological stages of susceptible, infected and incubating, asymptomatic, presymptomatic, and symptomatic with either mild, severe, or critical illness, recovered, and dead.
 
@@ -56,7 +58,7 @@ include("scen.jl")
 
 ***First, make sure that the address 'main_folder' inside function 'create_folder' in file [simulations_cluster](simulations_cluster.jl) points to a valid directory in your system.*** 
 
-The model is parameterized to fit to data from US from Octuber to May. The [incidence data](cases_us.csv) was taken from [NY times](https://github.com/nytimes/covid-19-data/). The function 'run_param_scen_cal' will generate a folder, inside the pointed directory, named **results\__b_\_herd\_immu\__h_\__vaccine\__index_\__state_** in which all the ***variables*** are the ones cited in the previous section. ***b*** is the probability, but the '.' is replaced by '\_'. If you ran the ***scen.jl*** file.
+The model is parameterized to fit to data from US from Octuber to August. The [incidence data](cases_us.csv) was taken from [NY times](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv). The function 'run_param_scen_cal' will generate a folder, inside the pointed directory, named **results\__b_\_herd\_immu\__h_\__vaccine\__index_\__state_** in which all the ***variables*** are the ones cited in the previous section. ***b*** is the probability, but the '.' is replaced by '\_'. If you ran the ***scen.jl*** file.
 
 Inside this folder, one will find different data files. The most important ones are the ones named
 **simlevel_\*\_inc\_\*\*.dat** in which
