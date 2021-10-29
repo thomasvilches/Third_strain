@@ -152,7 +152,7 @@ end
 
     priority::Bool = true
     scenario::Symbol = :statuscuo
-    time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
+    time_back_to_normal::Int64 = relaxing_time ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
     ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
     back_normal_rate::Float64 = 1.5151515#2.118644068=>1 # ####1.483050847 =>0.7
@@ -320,7 +320,7 @@ function main(ip::ModelParameters,sim::Int64)
             setfield!(p, :relaxed, true)
         end
 
-        if p.relaxed && count_relax <= p.relax_over
+        if st >= p.time_back_to_normal && count_relax <= p.relax_over
             #setfield!(p, :contact_change_2, p.contact_change_2+p.relax_rate)
             p.contact_change_2 += p.relax_rate
             count_relax += 1
