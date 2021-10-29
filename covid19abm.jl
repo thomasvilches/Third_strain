@@ -149,13 +149,13 @@ end
 
     relax_over::Int64 = 92
     relax_rate::Float64 = (1-contact_change_2)/relax_over
+    turnon::Int64 = 0
 
     priority::Bool = true
     scenario::Symbol = :statuscuo
     time_back_to_normal::Int64 = relaxing_time ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
     ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
-    back_normal_rate::Float64 = 1.5151515#2.118644068=>1 # ####1.483050847 =>0.7
 end
 
 Base.@kwdef mutable struct ct_data_collect
@@ -1567,7 +1567,7 @@ export _get_betavalue
     
     if !x.iso 
         #cnt = rand() < 0.5 ? 0 : rand(1:3)
-        aux = x.relaxed ? 1.0*p.contact_change_rate : p.contact_change_rate*p.contact_change_2
+        aux = x.relaxed ? 1.0*(p.contact_change_rate^p.turnon) : p.contact_change_rate*p.contact_change_2
         cnt = rand(negative_binomials(ag,aux)) 
     else 
         cnt = rand(negative_binomials_shelter(ag,p.contact_change_3))  # expensive operation, try to optimize

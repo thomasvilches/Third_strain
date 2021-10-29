@@ -69,10 +69,7 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
                 CSV.write(fn, udf)
             end
             println("saving dataframe time level: $k")
-            # time level, save file per age group
-            #yaf = compute_yearly_average(df)       
-            #fn = string("$(folderprefix)/timelevel_", k, ".dat")   
-            #CSV.write(fn, yaf)       
+                 
         end
     else
         c1 = Symbol.((:LAT, :HOS, :ICU, :DED,:LAT2, :HOS2, :ICU2, :DED2,:LAT3, :HOS3, :ICU3, :DED3,:LAT4, :HOS4, :ICU4, :DED4), :_INC)
@@ -88,10 +85,7 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
                 CSV.write(fn, udf)
             end
             println("saving dataframe time level: $k")
-            # time level, save file per age group
-            #yaf = compute_yearly_average(df)       
-            #fn = string("$(folderprefix)/timelevel_", k, ".dat")   
-            #CSV.write(fn, yaf)       
+                  
         end
     end
    
@@ -105,36 +99,6 @@ function run(myp::cv.ModelParameters, nsims=1000, folderprefix="./")
     return mydfs
 end
 
-
-function compute_yearly_average(df)
-    ya = df |> @groupby(_.time) |> @map({time=key(_), cnt=length(_),
-              sus_prev=mean(_.SUS_PREV), 
-              lat_prev=mean(_.LAT_PREV), 
-              pre_prev=mean(_.PRE_PREV), 
-              asymp_prev=mean(_.ASYMP_PREV), 
-              mild_prev=mean(_.MILD_PREV), 
-              miso_prev=mean(_.MISO_PREV), 
-              inf_prev=mean(_.INF_PREV), 
-              iiso_prev=mean(_.IISO_PREV), 
-              hos_prev=mean(_.HOS_PREV), 
-              icu_prev=mean(_.ICU_PREV), 
-              rec_prev=mean(_.REC_PREV), 
-              ded_prev=mean(_.DED_PREV), 
-              sus_inc=mean(_.SUS_INC),
-              lat_inc=mean(_.LAT_INC), 
-              pre_inc=mean(_.PRE_INC), 
-              asymp_inc=mean(_.ASYMP_INC), 
-              mild_inc=mean(_.MILD_INC), 
-              miso_inc=mean(_.MISO_INC), 
-              inf_inc=mean(_.INF_INC),
-              iiso_inc=mean(_.IISO_INC),
-              hos_inc=mean(_.HOS_INC),
-              icu_inc=mean(_.ICU_INC),
-              rec_inc=mean(_.REC_INC),
-              ded_inc=mean(_.DED_INC)
-              }) |> DataFrame
-    return ya
-end
 
 function _calibrate(nsims, myp::cv.ModelParameters)
     myp.calibration != true && error("calibration parameter not turned on")
@@ -168,29 +132,6 @@ function calibrate(beta, nsims, herdi = 0, cali2 = false, fs = 0.0, prov=:usa, i
     return m
 end
 
-function calibrate_robustness(beta, reps, prov=:usa)
-    #[:ontario, :alberta, :bc, :manitoba, :newbruns, :newfdland, :nwterrito, :novasco, :nunavut, :pei, :quebec, :saskat, :yukon]
-    # once a beta is found based on nsims simulations, 
-    # see how robust it is. run calibration with same beta 100 times 
-    # to see the variation in R0 produced. 
-    #nsims = [1000]
-    means = zeros(Float64, reps)
-    #for (i, ns) in enumerate(nsims)
-    cd = map(1:reps) do x 
-        println("iter: $x")
-        mval = calibrate(beta,10000)         
-        return mval
-    end
-    
-    #end
-    # for i in 2:nworkers()
-    #     ## mf defined as: @everywhere mg() = covid19abm.p.β     
-    #     rpr = remotecall_fetch(mf,  i+1).prov
-    #     rpr != prov && error("province didn't get set in the remote workers")
-    # end
-    return cd
-end
-
 function create_folder(ip::cv.ModelParameters,vac="none")
     
     
@@ -208,7 +149,7 @@ function create_folder(ip::cv.ModelParameters,vac="none")
     return RF
 end
 
-function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,vaccine = true,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,vc=[999],vr=[1.0],mt=334,scen::String = "statuscuo",nsims=500)
+function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_trans=1.6,vaccine = true,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,vc=[999],vr=[1.0],mt=334,scen::String = "statuscuo",turnon=0,nsims=500)
     
     #b = bd[h_i]
     #ic = init_con[h_i]
@@ -217,7 +158,7 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_t
     ins_sec_strain = true,third_strain_trans=$strain3_trans,
     fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
     time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
-    time_change_contact = $vc, change_rate_values = $vr,modeltime = $mt,scenario = Symbol($scen))
+    time_change_contact = $vc, change_rate_values = $vr,modeltime = $mt,scenario = Symbol($scen),turnon=$turnon)
 
     folder = create_folder(ip,"pfizer")
 
@@ -226,24 +167,3 @@ function run_param_scen(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain3_trans=1.5,strain4_t
    
 end
 
-
-function run_param_scen_cal(b,h_i = 0,ic=1,fs=0.0,fm=0.0,strain2_trans=1.5,strain3_trans=1.5,strain4_trans=1.6,red = 0.0,index = 0,when_= 999,dosis=3,ta = 999,rc=[0.0],dc=[0],mt=500,nsims=500)
-    
-       
-    #b = bd[h_i]
-    #ic = init_con[h_i]
-    @everywhere ip = cv.ModelParameters(β=$b,fsevere = $fs,fmild = $fm,vaccinating = true,
-    herd = $(h_i),start_several_inf=true,initialinf3=$ic,
-    ins_sec_strain = true,third_strain_trans=$strain3_trans,sec_strain_trans=$strain2_trans,
-    fourth_strain_trans=$strain4_trans, strain_ef_red3 = $red,strain_ef_red4 = $red,
-    time_back_to_normal = $when_,status_relax = $dosis, relax_after = $ta,file_index = $index,
-    modeltime=$mt,
-    time_change_contact = $dc,
-    change_rate_values = $rc)
-
-    folder = create_folder(ip,"pfizer")
-
-    #println("$v_e $(ip.vaccine_ef)")
-    run(ip,nsims,folder)
-   
-end
