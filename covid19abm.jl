@@ -139,11 +139,16 @@ end
     change_rate_values::Array{Float64,1} = [1;map(y->1.0+0.01*y,1:6);map(y->1.06-0.01*y,1:6);map(y->1.0-(0.03/5)*y,1:5);map(y->0.97+(0.084/9)*y,1:9);map(y->1.054-(0.225/16)*y,1:16);map(y-> 0.834+(0.03/7)*y,1:7);map(y-> 0.864-(0.11/22)*y,1:22)]
     contact_change_rate::Float64 = 1.0 #the rate that receives the value of change_rate_values
     contact_change_2::Float64 = 0.5 ##baseline number that multiplies the contact rate
+    contact_change_3::Float64 = contact_change_2 ##baseline for isolate, will not change over time
+
 
     relaxed::Bool = false
     relaxing_time::Int64 = 215 ### relax measures for vaccinated
     status_relax::Int16 = 2
     relax_after::Int64 = 1
+
+    relax_over::Int64 = 92
+    relax_rate::Float64 = (1-contact_change_2)/relax_over
 
     priority::Bool = true
     scenario::Symbol = :statuscuo
@@ -279,6 +284,7 @@ function main(ip::ModelParameters,sim::Int64)
     # split population in agegroups 
     grps = get_ag_dist()
     count_change::Int64 = 1
+    count_relax::Int64 = 1
     
     time_vac::Int64 = 1
     time_pos::Int64 = 0
@@ -308,14 +314,16 @@ function main(ip::ModelParameters,sim::Int64)
             setfield!(p, :contact_change_rate, p.change_rate_values[count_change])
             count_change += 1
         end
-        # start of day
-        #println("$st")
+        
 
         if st == p.relaxing_time ### time that people vaccinated people is allowed to go back to normal
             setfield!(p, :relaxed, true)
-        elseif st == p.time_back_to_normal ##time that non-vaccinated people is allowed to go back to normal
-            setfield!(p, :contact_change_2, p.contact_change_2*p.back_normal_rate)
-            #setfield!(p, :contact_change_rate, 1.0)
+        end
+
+        if p.relaxed && count_relax <= p.relax_over
+            #setfield!(p, :contact_change_2, p.contact_change_2+p.relax_rate)
+            p.contact_change_2 += p.relax_rate
+            count_relax += 1
         end
 
         if time_pos < length(vaccination_days) && time_vac == vaccination_days[time_pos+1]
@@ -1559,10 +1567,10 @@ export _get_betavalue
     
     if !x.iso 
         #cnt = rand() < 0.5 ? 0 : rand(1:3)
-        aux = x.relaxed ? 1.0 : p.contact_change_rate*p.contact_change_2
-        cnt = rand(negative_binomials(ag,aux)) ##using the contact average for shelter-in
+        aux = x.relaxed ? 1.0*p.contact_change_rate : p.contact_change_rate*p.contact_change_2
+        cnt = rand(negative_binomials(ag,aux)) 
     else 
-        cnt = rand(negative_binomials_shelter(ag,p.contact_change_2))  # expensive operation, try to optimize
+        cnt = rand(negative_binomials_shelter(ag,p.contact_change_3))  # expensive operation, try to optimize
     end
     
     if x.health in (DED,DED2,DED3)
