@@ -12817,7 +12817,7 @@ function vaccination_rate_1(sim::Int64)
         0 0 0 0 0 0 0 0]
     end
 
-    rp = Int.(round.(mean(v[end-6:end,:],dims=1)))
+    rp = Int.(round.(mean(v[end-30:end,:],dims=1)))
     l2 = p.modeltime-(p.day_inital_vac+size(v,1)-2)
     if l2 > 0
         v2 = repeat(rp,l2)
@@ -25654,7 +25654,7 @@ function vaccination_rate_2(sim::Int64)
     end
 
     
-    rp = Int.(round.(mean(v[end-6:end,:],dims=1)))
+    rp = Int.(round.(mean(v[end-30:end,:],dims=1)))
     l2 = p.modeltime-(p.day_inital_vac+size(v,1)-2)
     if l2 > 0
         v2 = repeat(rp,l2)

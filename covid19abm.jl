@@ -166,10 +166,8 @@ end
     α3::Float64 = 1.0
 
     scenario::Symbol = :statuscuo
-    time_back_to_normal::Int64 = 999 ###relaxing time of measures for non-vaccinated
     ### after calibration, how much do we want to increase the contact rate... in this case, to reach 70%
     ### 0.5*0.95 = 0.475, so we want to multiply this by 1.473684211
-    back_normal_rate::Float64 = 1.5151515#2.118644068=>1 # ####1.483050847 =>0.7
 end
 
 Base.@kwdef mutable struct ct_data_collect
@@ -339,9 +337,6 @@ function main(ip::ModelParameters,sim::Int64)
 
         if st == p.relaxing_time ### time that people vaccinated people is allowed to go back to normal
             setfield!(p, :relaxed, true)
-        elseif st == p.time_back_to_normal ##time that non-vaccinated people is allowed to go back to normal
-            setfield!(p, :contact_change_2, p.contact_change_2*p.back_normal_rate)
-            #setfield!(p, :contact_change_rate, 1.0)
         end
 
         if time_pos < length(vaccination_days) && time_vac == vaccination_days[time_pos+1]
