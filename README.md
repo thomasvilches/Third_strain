@@ -14,7 +14,8 @@ Model features include:
 - Isolation of symptomatic individuals
 - The average number of daily contacts can be changed to fit to data
 - Four strains, corresponding to when they were identified in the United States
-
+- The file **matrices_code.jl** contains daily vaccination rate per 100.000 population per age group following [CDC data](https://data.cdc.gov/Vaccinations/COVID-19-Vaccination-Demographics-in-the-United-St/km4m-vcsb).
+- The function **get_province_ag** returns the population age distribution (by default in USA).
 ## How to download and run
 
 Prerequisites: Julia 1.0.4, access to a cluster or a high-compute workstation. 
