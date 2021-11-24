@@ -1,5 +1,5 @@
 # COVID-19 Agent Based Model
-COVID-19 Hospitalizations and Deaths Averted Under an Accelerated Vaccination Program in Ten US States
+COVID-19 Hospitalizations and Deaths Averted Under an Accelerated Vaccination Program in Northeast and South Regions of the USA
 
 Vilches *et al*
 ## Model details:
