@@ -1,5 +1,5 @@
 # COVID-19 Agent Based Model
-COVID-19 deaths and hospitalizations averted by rapid vaccination rollout in the United States
+Estimating COVID-19 Infections, Hospitalizations, and Deaths Following the US Vaccination Campaigns During the Pandemic
 
 Vilches *et al*
 
